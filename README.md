@@ -4,7 +4,7 @@
 - ### Daniel Kowalski
   - https://daniel-kowalski.com/
   - https://www.lunarisweb.pl/
-- Krzysztof Kantorski
+- ### Krzysztof Kantorski
 
 ## Features
 
