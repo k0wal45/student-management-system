@@ -1,5 +1,11 @@
 # Student Management System – C++ Project
 
+## Authors:
+- ### Daniel Kowalski
+  - https://daniel-kowalski.com/
+  - https://www.lunarisweb.pl/
+- Krzysztof Kantorski
+
 ## Features
 
 1. Role-based system
