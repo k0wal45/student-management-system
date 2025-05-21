@@ -14,7 +14,7 @@ int main() {
         cout << "Environment variable WORD is not set." << endl;
     }
 
-    cout << "pls work" << endl;
+    cout << "pls work this time too" << endl;
 
     return 0;
 }
