@@ -3,7 +3,7 @@
 ## Authors:
 - ### Daniel Kowalski
   - https://daniel-kowalski.com/
-  - https://www.lunarisweb.pl/
+  - https://www.linkedin.com/in/daniel-kowalski-com/
 - ### Krzysztof Kantorski
 
 ## Features
