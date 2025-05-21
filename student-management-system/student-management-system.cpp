@@ -1,6 +1,20 @@
-﻿#include <iostream>
+﻿#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <cstdlib>
 
-int main()
-{
-    std::cout << "Hello World!\n";
+using namespace std;
+
+int main() {
+    const char* word = getenv("WORD");
+
+    if (word) {
+        cout << "The value of WORD is: " << word << endl;
+    }
+    else {
+        cout << "Environment variable WORD is not set." << endl;
+    }
+
+    cout << "pls work" << endl;
+
+    return 0;
 }
