@@ -13,10 +13,51 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="GUI">
+      <UniqueIdentifier>{1bade19f-1c58-4256-b284-03c92f1e620f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="student-management-system.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
+    <ClCompile Include="MainApp.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="MainFrame.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="LoginPanel.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="AdminPanel.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="TeacherPanel.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="StudentPanel.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MainApp.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="MainFrame.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="LoginPanel.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="AdminPanel.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="TeacherPanel.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="StudentPanel.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
