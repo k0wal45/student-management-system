@@ -39,6 +39,9 @@
     <ClCompile Include="StudentPanel.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="test.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainApp.h">
