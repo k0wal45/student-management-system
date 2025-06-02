@@ -5,16 +5,22 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Pliki nagłówkowe">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
     <Filter Include="Pliki zasobów">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="GUI">
       <UniqueIdentifier>{1bade19f-1c58-4256-b284-03c92f1e620f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Pliki nagłówkowe">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Backend">
+      <UniqueIdentifier>{6891b445-b3c1-44dd-ae42-3cc752f099e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Database">
+      <UniqueIdentifier>{34884c19-d765-4238-aed1-b0a2931a0af8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -42,6 +48,9 @@
     <ClCompile Include="test.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
+    <ClCompile Include="addStudents.cpp">
+      <Filter>Backend</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainApp.h">
@@ -62,5 +71,16 @@
     <ClInclude Include="StudentPanel.h">
       <Filter>GUI</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Desktop\json.hpp">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="addStudents.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="students.json">
+      <Filter>Database</Filter>
+    </None>
   </ItemGroup>
 </Project>

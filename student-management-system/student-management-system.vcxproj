@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -135,6 +135,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="addStudents.cpp" />
     <ClCompile Include="AdminPanel.cpp" />
     <ClCompile Include="LoginPanel.cpp" />
     <ClCompile Include="MainApp.cpp" />
@@ -145,12 +146,17 @@
     <ClCompile Include="test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\Desktop\json.hpp" />
+    <ClInclude Include="addStudents.h" />
     <ClInclude Include="AdminPanel.h" />
     <ClInclude Include="LoginPanel.h" />
     <ClInclude Include="MainApp.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="StudentPanel.h" />
     <ClInclude Include="TeacherPanel.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="students.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
