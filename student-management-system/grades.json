@@ -1,0 +1,37 @@
+[
+  {
+    "id": "g1",
+    "grade": 5.0,
+    "subject": "Matematyka",
+    "comment": "�wietna praca na egzaminie",
+    "date": "2023-10-01"
+  },
+  {
+    "id": "g2",
+    "grade": 4.5,
+    "subject": "Fizyka",
+    "comment": "Dobra znajomo�� materia�u",
+    "date": "2023-10-02"
+  },
+  {
+    "id": "g3",
+    "grade": 3.0,
+    "subject": "Chemia",
+    "comment": "Wymaga poprawy",
+    "date": "2023-10-03"
+  },
+  {
+    "id": "g4",
+    "grade": 5.0,
+    "subject": "Chemia",
+    "comment": "Perfekcyjnie",
+    "date": "2023-03-13"
+  },
+  {
+    "id": "g5",
+    "grade": 2.0,
+    "subject": "Algebra i Logika",
+    "comment": "Wymaga poprawy",
+    "date": "2023-11-03"
+  }
+]

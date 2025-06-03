@@ -137,6 +137,7 @@
   <ItemGroup>
     <ClCompile Include="bcrypt.cpp" />
     <ClCompile Include="blowfish.cpp" />
+    <ClCompile Include="Grade.cpp" />
     <ClCompile Include="printStudents.cpp" />
     <ClCompile Include="AdminPanel.cpp" />
     <ClCompile Include="auth.cpp" />
@@ -152,6 +153,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\Desktop\json.hpp" />
     <ClInclude Include="bcrypt.h" />
+    <ClInclude Include="Grade.h" />
     <ClInclude Include="node_blf.h" />
     <ClInclude Include="openbsd.h" />
     <ClInclude Include="printStudents.h" />
@@ -165,6 +167,7 @@
     <ClInclude Include="Users.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="grades.json" />
     <None Include="students.json" />
     <None Include="users.json" />
   </ItemGroup>

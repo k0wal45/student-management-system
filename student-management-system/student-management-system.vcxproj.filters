@@ -69,6 +69,9 @@
     <ClCompile Include="blowfish.cpp">
       <Filter>lib\bcrypt</Filter>
     </ClCompile>
+    <ClCompile Include="Grade.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainApp.h">
@@ -110,12 +113,18 @@
     <ClInclude Include="openbsd.h">
       <Filter>lib\bcrypt</Filter>
     </ClInclude>
+    <ClInclude Include="Grade.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="students.json">
       <Filter>Database</Filter>
     </None>
     <None Include="users.json">
+      <Filter>Database</Filter>
+    </None>
+    <None Include="grades.json">
       <Filter>Database</Filter>
     </None>
   </ItemGroup>

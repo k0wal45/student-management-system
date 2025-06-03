@@ -1,31 +1,25 @@
-﻿#include "bcrypt.h"
-#include <iostream>
-#include <string>
+﻿#include <iostream>
+#include "Students.h"
 
 using namespace std;
 
-int main()
-{
+int main() {
+    try {
+        // Wczytanie studentów z pliku JSON
+        vector<Students> students = Students::loadStudentsFromFile();
 
-    string password = "top_secret";
+        // Wyświetlenie liczby studentów
+        cout << "Liczba studentow: " << students.size() << endl;
 
-    string hash = bcrypt::generateHash(password);
+        // Iteracja po studentach i wyświetlenie ich informacji oraz ocen
+        for (const auto& student : students) {
+            cout << "\nInformacje o studencie:" << endl;
+            student.displayStudentInfo(); // Wyświetlenie informacji o studencie i jego ocenach
+        }
+    }
+    catch (const exception& e) {
+        cerr << "Wystapil blad: " << e.what() << endl;
+    }
 
-    cout << "Hash: " << hash << endl;
-
-
-	while (true) {
-		string input;
-		cout << "Enter password to hash: ";
-		cin >> input;
-
-		if (input == "end") {
-			break;
-		}
-
-		string hashedInput = bcrypt::generateHash(input);
-		cout << "Hashed Input: " << hashedInput << endl;
-
-	}
     return 0;
 }

@@ -1,26 +1,30 @@
-#pragma once
-#include <iostream>
+#ifndef STUDENTS_H
+#define STUDENTS_H
+
 #include <string>
 #include <vector>
+#include <iostream>
+#include "Grade.h" // Dodano, aby uzyskaæ dostêp do klasy Grade
 #include "json.hpp"
 
 using namespace std;
 using json = nlohmann::json;
 
-class Students
-{
+class Students {
 public:
-    string id;
-    string first_name;
-    string last_name;
-    string student_id;
-    string email;
-    string major;
-    int year;
-    string group;
-    vector<string> grades;
+    static const string filePath; // Œcie¿ka do pliku JSON z danymi studentów
 
-    // Konstruktor z parametrami
+    string id;         // ID studenta
+    string first_name; // Imiê
+    string last_name;  // Nazwisko
+    string student_id; // Numer studenta
+    string email;      // Email
+    string major;      // Kierunek studiów
+    int year;          // Rok studiów
+    string group;      // Grupa studencka
+    vector<string> grades; // Lista ID ocen przypisanych do studenta
+
+    // Konstruktor
     Students(const string& id, const string& first_name, const string& last_name,
         const string& student_id, const string& email, const string& major,
         int year, const string& group, const vector<string>& grades);
@@ -29,15 +33,15 @@ public:
     ~Students();
 
     // Metody
-    void addGrade(const string& grade_id);
-    void removeGrade(const string& grade_id);
-    void listGrades() const;
-    void displayStudentInfo() const;
+    void addGrade(const string& grade_id);       // Dodanie oceny do studenta
+    void removeGrade(const string& grade_id);    // Usuniêcie oceny ze studenta
+    void listGrades() const;                     // Wyœwietlenie ocen studenta
+    void displayStudentInfo() const;             // Wyœwietlenie informacji o studencie
+    Grade getGrade(const string& grade_id) const; // Pobranie obiektu Grade na podstawie ID
 
-    // Statyczne metody do obs³ugi JSON
-    static vector<Students> loadStudentsFromFile();
-    static void saveStudentsToFile(const vector<Students>& students);
-
-    // Statyczne pole: œcie¿ka do pliku
-    static const string filePath;
+    // Operacje na plikach
+    static vector<Students> loadStudentsFromFile(); // Wczytanie studentów z pliku JSON
+    static void saveStudentsToFile(const vector<Students>& students); // Zapisanie studentów do pliku JSON
 };
+
+#endif // STUDENTS_H
