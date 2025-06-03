@@ -11,22 +11,21 @@ int main()
 
     string hash = bcrypt::generateHash(password);
 
-    cout << "Hash: " << hash << std::endl;
+    cout << "Hash: " << hash << endl;
 
 
 	while (true) {
 		string input;
-		cout << "Enter password to verify: ";
+		cout << "Enter password to hash: ";
 		cin >> input;
 
-		if (bcrypt::validatePassword(input, hash)) {
-			cout << "Password is correct!" << endl;
-
+		if (input == "end") {
 			break;
 		}
-		else {
-			cout << "Incorrect password." << endl;
-		}
+
+		string hashedInput = bcrypt::generateHash(input);
+		cout << "Hashed Input: " << hashedInput << endl;
+
 	}
     return 0;
 }

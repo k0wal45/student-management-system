@@ -2,7 +2,7 @@
   {
     "_id": "s123456",
     "login": "annanowak",
-    "password_hash": "$2b$12$Xk...klZ",
+    "password_hash": "$2b$10$jhSVHeggvFmw6ZPZusSkSudc.jl3aw8WLxrucRKN96VkxeKlZGqvy", // annapassword
     "role": "student",
     "first_name": "Anna",
     "last_name": "Nowak",
@@ -11,7 +11,7 @@
   {
     "_id": "s654321",
     "login": "jankowalski",
-    "password_hash": "$2b$12$Yl...mnX",
+    "password_hash": "$2b$10$NnZ4MQn6eBc7Vi00xKYQquB/ByUCWm/btIhqmZ5xoilnpqGgEvo6G", //janpassword
     "role": "student",
     "first_name": "Jan",
     "last_name": "Kowalski",
@@ -20,7 +20,7 @@
   {
     "_id": "3",
     "login": "piotrnowak",
-    "password_hash": "$2b$12$Zp...opY",
+    "password_hash": "$2b$10$7axCClrzUr8kc9HXpSiZY.p2OaimGUD7d/rTWYEYCEhGWHtW4gRBG", // piotrpassword
     "role": "teacher",
     "first_name": "Piotr",
     "last_name": "Nowak",
@@ -29,7 +29,7 @@
   {
     "_id": "4",
     "login": "admin",
-    "password_hash": "$2b$12$Ab...cdE",
+    "password_hash": "$2b$10$2KmO2VRYsnMGTjk6NNAlteA0k8JwYFokogpQjskqTHbjtiQYrCrbK", // adminpassword
     "role": "admin",
     "first_name": "Admin",
     "last_name": "Systemowy",
