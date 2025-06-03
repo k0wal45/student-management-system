@@ -1,29 +1,32 @@
-﻿#include "printStudents.h"
-#include "json.hpp"
-#include "Students.h"
+﻿#include "bcrypt.h"
+#include <iostream>
+#include <string>
 
-int main() {
+using namespace std;
+
+int main()
+{
+
+    string password = "top_secret";
+
+    string hash = bcrypt::generateHash(password);
+
+    cout << "Hash: " << hash << std::endl;
 
 
-    string path = "students.json"; // Upewnij się, że ścieżka jest poprawna
+	while (true) {
+		string input;
+		cout << "Enter password to verify: ";
+		cin >> input;
 
-    cout << "System zarzadzania studentami\n";
-    cout << "1. Pokaz studentow\n";
-    cout << "2. Wyjdz\n";
-    cout << "Wybierz opcje: ";
-    int option;
-    cin >> option;
-    cin.ignore();
+		if (bcrypt::validatePassword(input, hash)) {
+			cout << "Password is correct!" << endl;
 
-    if (option == 1) {
-        printStudents(path);
-    }
-    else if (option == 2) {
-        cout << "Wyjscie z programu.\n";
-    }
-    else {
-        cout << "Nieprawidlowa opcja.\n";
-    }
-
+			break;
+		}
+		else {
+			cout << "Incorrect password." << endl;
+		}
+	}
     return 0;
 }

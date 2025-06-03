@@ -22,6 +22,12 @@
     <Filter Include="Database">
       <UniqueIdentifier>{34884c19-d765-4238-aed1-b0a2931a0af8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{223c5364-835c-40c0-8269-8fac23ea1507}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\bcrypt">
+      <UniqueIdentifier>{07cac04d-3a8f-4406-875f-0738275503f9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="student-management-system.cpp">
@@ -54,6 +60,15 @@
     <ClCompile Include="Students.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
+    <ClCompile Include="Users.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="bcrypt.cpp">
+      <Filter>lib\bcrypt</Filter>
+    </ClCompile>
+    <ClCompile Include="blowfish.cpp">
+      <Filter>lib\bcrypt</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainApp.h">
@@ -83,9 +98,24 @@
     <ClInclude Include="Students.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
+    <ClInclude Include="Users.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="bcrypt.h">
+      <Filter>lib\bcrypt</Filter>
+    </ClInclude>
+    <ClInclude Include="node_blf.h">
+      <Filter>lib\bcrypt</Filter>
+    </ClInclude>
+    <ClInclude Include="openbsd.h">
+      <Filter>lib\bcrypt</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="students.json">
+      <Filter>Database</Filter>
+    </None>
+    <None Include="users.json">
       <Filter>Database</Filter>
     </None>
   </ItemGroup>

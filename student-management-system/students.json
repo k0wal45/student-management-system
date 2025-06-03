@@ -1,14 +1,32 @@
 [
-  {
-    "id": 1,
-    "name": "Jan",
-    "surname": "Kowalski",
-    "email": "jan.kowalski@example.com"
-  },
-  {
-    "id": 2,
-    "name": "Anna",
-    "surname": "Nowak",
-    "email": "anna.nowak@example.com"
-  }
+    {
+        "email": "anna.nowak@example.com",
+        "first_name": "Anna",
+        "grades": [
+            "g1",
+            "g2",
+            "g3",
+            "g7"
+        ],
+        "group": "2B",
+        "id": "1",
+        "last_name": "Nowak",
+        "major": "Computer Science",
+        "student_id": "s123456",
+        "year": 2
+    },
+    {
+        "email": "jan.kowalski@example.com",
+        "first_name": "Jan",
+        "grades": [
+            "g4",
+            "g5"
+        ],
+        "group": "3A",
+        "id": "2",
+        "last_name": "Kowalski",
+        "major": "Mathematics",
+        "student_id": "s654321",
+        "year": 3
+    }
 ]

@@ -1,0 +1,38 @@
+[
+  {
+    "_id": "s123456",
+    "login": "annanowak",
+    "password_hash": "$2b$12$Xk...klZ",
+    "role": "student",
+    "first_name": "Anna",
+    "last_name": "Nowak",
+    "last_login": "2025-05-14T10:23:00Z"
+  },
+  {
+    "_id": "s654321",
+    "login": "jankowalski",
+    "password_hash": "$2b$12$Yl...mnX",
+    "role": "student",
+    "first_name": "Jan",
+    "last_name": "Kowalski",
+    "last_login": "2025-05-13T09:15:00Z"
+  },
+  {
+    "_id": "3",
+    "login": "piotrnowak",
+    "password_hash": "$2b$12$Zp...opY",
+    "role": "teacher",
+    "first_name": "Piotr",
+    "last_name": "Nowak",
+    "last_login": "2025-05-12T08:00:00Z"
+  },
+  {
+    "_id": "4",
+    "login": "admin",
+    "password_hash": "$2b$12$Ab...cdE",
+    "role": "admin",
+    "first_name": "Admin",
+    "last_name": "Systemowy",
+    "last_login": "2025-05-14T12:00:00Z"
+  }
+]

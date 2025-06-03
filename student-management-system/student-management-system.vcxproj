@@ -135,6 +135,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="bcrypt.cpp" />
+    <ClCompile Include="blowfish.cpp" />
     <ClCompile Include="printStudents.cpp" />
     <ClCompile Include="AdminPanel.cpp" />
     <ClCompile Include="auth.cpp" />
@@ -145,9 +147,13 @@
     <ClCompile Include="StudentPanel.cpp" />
     <ClCompile Include="Students.cpp" />
     <ClCompile Include="TeacherPanel.cpp" />
+    <ClCompile Include="Users.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\Desktop\json.hpp" />
+    <ClInclude Include="bcrypt.h" />
+    <ClInclude Include="node_blf.h" />
+    <ClInclude Include="openbsd.h" />
     <ClInclude Include="printStudents.h" />
     <ClInclude Include="AdminPanel.h" />
     <ClInclude Include="LoginPanel.h" />
@@ -156,9 +162,11 @@
     <ClInclude Include="StudentPanel.h" />
     <ClInclude Include="Students.h" />
     <ClInclude Include="TeacherPanel.h" />
+    <ClInclude Include="Users.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="students.json" />
+    <None Include="users.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
