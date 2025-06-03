@@ -135,24 +135,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="addStudents.cpp" />
+    <ClCompile Include="printStudents.cpp" />
     <ClCompile Include="AdminPanel.cpp" />
+    <ClCompile Include="auth.cpp" />
     <ClCompile Include="LoginPanel.cpp" />
     <ClCompile Include="MainApp.cpp" />
     <ClCompile Include="MainFrame.cpp" />
     <ClCompile Include="student-management-system.cpp" />
     <ClCompile Include="StudentPanel.cpp" />
+    <ClCompile Include="Students.cpp" />
     <ClCompile Include="TeacherPanel.cpp" />
-    <ClCompile Include="test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\Desktop\json.hpp" />
-    <ClInclude Include="addStudents.h" />
+    <ClInclude Include="printStudents.h" />
     <ClInclude Include="AdminPanel.h" />
     <ClInclude Include="LoginPanel.h" />
     <ClInclude Include="MainApp.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="StudentPanel.h" />
+    <ClInclude Include="Students.h" />
     <ClInclude Include="TeacherPanel.h" />
   </ItemGroup>
   <ItemGroup>

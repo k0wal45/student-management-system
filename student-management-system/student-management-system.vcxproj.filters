@@ -45,11 +45,14 @@
     <ClCompile Include="StudentPanel.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="test.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="addStudents.cpp">
+    <ClCompile Include="printStudents.cpp">
       <Filter>Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="auth.cpp">
+      <Filter>Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="Students.cpp">
+      <Filter>Pliki źródłowe</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -74,7 +77,10 @@
     <ClInclude Include="..\..\..\..\..\Desktop\json.hpp">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
-    <ClInclude Include="addStudents.h">
+    <ClInclude Include="printStudents.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="Students.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,9 +1,6 @@
-﻿#include <iostream>
-
-#include "addStudents.h"
+﻿#include "printStudents.h"
 #include "json.hpp"
-
-using namespace std;
+#include "Students.h"
 
 int main() {
 
