@@ -14,16 +14,29 @@ private:
     wxString teacherName;
 	//lista studentów
     wxListCtrl* studentsList;
+   //lista ocen
+    wxListCtrl* gradesList;
     // Dodane pole do wyszukiwania
     wxTextCtrl* searchCtrl; 
-
+    wxNotebook* notebook;
 	//dodanie oceny
     void OnAddGrade(wxCommandEvent& event);
     void ShowAddGradeDialog();
 
+	void OnRemoveGrade(wxCommandEvent& event);
 	//filtrowanie studentów
     void OnSearch(wxCommandEvent& event);
     void FilterStudents(const wxString& searchText);
+
+
+    //aktualizacja listy ocen po dodaniu
+    void RefreshGradesList();
+
+
+    void FilterData(const wxString& searchText, bool filterGrades);
+    void RemoveGrade();
+    void ShowRemoveGradeDialog();
+
     //dodanie egzaminu
     void OnAddExam(wxCommandEvent& event);
     void ShowAddExamDialog();

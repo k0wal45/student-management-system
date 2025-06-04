@@ -2,7 +2,7 @@
 #include "MainFrame.h"
 #include <wx/listctrl.h>
 #include <wx/datectrl.h>
-
+#include "Students.h"
 StudentPanel::StudentPanel(wxWindow* parent, const wxString& studentName)
     : wxPanel(parent), studentName(studentName) 
 {
