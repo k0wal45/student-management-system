@@ -7,11 +7,11 @@ class TeacherPanel : public wxPanel
 {
 public:
 	//stworzenie panelu nauczyciela
-    TeacherPanel(wxWindow* parent, const wxString& teacherName);
+    TeacherPanel(wxWindow* parent, const wxString& teacherEmail);
    
 private:
 	//przechowanie nazwy nauczyciela
-    wxString teacherName;
+    wxString teacherEmail;
 	//lista studentów
     wxListCtrl* studentsList;
    //lista ocen

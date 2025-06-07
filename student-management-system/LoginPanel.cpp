@@ -118,10 +118,10 @@ void LoginPanel::OnLogin(wxCommandEvent& event)
         frame->ShowAdminPanel();
     }
     else if (role == "Teacher") {
-        frame->ShowTeacherPanel("John Doe");
+        frame->ShowTeacherPanel(email);
     }
     else {
-        frame->ShowStudentPanel("Alice Smith");
+        frame->ShowStudentPanel(email);
     }
 }
 

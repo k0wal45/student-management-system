@@ -1,37 +1,65 @@
 [
     {
-        "comment": "Wymaga poprawy",
-        "date": "2023-11-03",
+        "comment": "jjj",
+        "date": "2025-06-07",
         "grade": 2.0,
-        "id": "g5",
-        "subject": "Algebra i Logika"
+        "id": "g3",
+        "subject": "Physics"
     },
     {
-        "comment": "dfgdfsg",
-        "date": "2025-06-04",
-        "grade": 0.0,
-        "id": "generated_id",
-        "subject": "fdjhgb"
+        "comment": "sss",
+        "date": "2025-06-07",
+        "grade": 4.0,
+        "id": "g4",
+        "subject": "Chemistry"
     },
     {
-        "comment": "Nie wymaga poprawy",
-        "date": "2025-06-04",
+        "comment": "dddd",
+        "date": "2025-06-07",
+        "grade": 4.5,
+        "id": "g6",
+        "subject": "History"
+    },
+    {
+        "comment": "aaa",
+        "date": "2025-06-07",
+        "grade": 3.0,
+        "id": "g7",
+        "subject": "Biology"
+    },
+    {
+        "comment": "dddddd",
+        "date": "2025-06-07",
         "grade": 5.0,
-        "id": "generated_id",
-        "subject": "Math"
+        "id": "g8",
+        "subject": "Maths"
     },
     {
-        "comment": "NIE",
-        "date": "2025-06-04",
-        "grade": 5.0,
-        "id": "generated_id",
-        "subject": "Fizyka"
+        "comment": "Good boy",
+        "date": "2025-06-07",
+        "grade": 3.0,
+        "id": "g9",
+        "subject": "Maths"
     },
     {
-        "comment": "hgdfgh",
-        "date": "2025-06-04",
+        "comment": "aaaaa",
+        "date": "2025-06-07",
+        "grade": 4.5,
+        "id": "g10",
+        "subject": "History"
+    },
+    {
+        "comment": "aaa",
+        "date": "2025-06-07",
+        "grade": 4.5,
+        "id": "g11",
+        "subject": "Biology"
+    },
+    {
+        "comment": "ddd",
+        "date": "2025-06-07",
         "grade": 2.0,
-        "id": "generated_id",
-        "subject": "Matematyka"
+        "id": "g12",
+        "subject": "Chemistry"
     }
 ]

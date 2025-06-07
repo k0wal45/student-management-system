@@ -12,16 +12,45 @@
 #include "Students.h"
 #include "Grade.h"
 #include <set>
+#include <regex>
 
-TeacherPanel::TeacherPanel(wxWindow* parent, const wxString& teacherName)
-    : wxPanel(parent), teacherName(teacherName), notebook(nullptr)
+TeacherPanel::TeacherPanel(wxWindow* parent, const wxString& teacherEmail)
+    : wxPanel(parent), teacherEmail(teacherEmail), notebook(nullptr)
 {
     SetBackgroundColour(wxColour(240, 240, 240));
     wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
     SetSize(800, 600);
 
+
     // Nag³ówek
-    wxStaticText* title = new wxStaticText(this, wxID_ANY, "Teacher Panel: " + teacherName, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
+    // Wczytaj dane studentów
+    vector<Students> allStudents = Students::loadStudentsFromFile();
+
+
+    // ZnajdŸ studenta na podstawie adresu e-mail
+    wxString emailToFind = teacherEmail; // Przypisz wartoœæ do zmiennej lokalnej
+    auto it = std::find_if(allStudents.begin(), allStudents.end(), [&emailToFind](const Students& student) {
+        return student.email == emailToFind.ToStdString();
+        });
+
+    wxString headerText;
+    if (it != allStudents.end()) {
+        // Jeœli student zosta³ znaleziony, ustaw imiê i nazwisko w nag³ówku
+        const Students& student = *it;
+        headerText = "Teacher Panel: " + wxString::FromUTF8(student.first_name + " " + student.last_name);
+    }
+    else {
+        // Jeœli nie znaleziono studenta, przekieruj do panelu logowania
+        wxMessageBox("Teacher not found: " + teacherEmail, "Error", wxOK | wxICON_ERROR);
+        MainFrame* frame = dynamic_cast<MainFrame*>(GetParent());
+        if (frame) {
+            frame->ShowLoginPanel();
+        }
+        return; // Zakoñcz konstruktor, aby nie inicjalizowaæ panelu
+    }
+
+    // Nag³ówek
+    wxStaticText* title = new wxStaticText(this, wxID_ANY, headerText, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     title->SetFont(wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
     mainSizer->Add(title, 0, wxALL | wxEXPAND, 10);
 
@@ -99,7 +128,7 @@ TeacherPanel::TeacherPanel(wxWindow* parent, const wxString& teacherName)
 
     // Wczytanie i wyœwietlenie ocen z pliku JSON
     vector<Grade> allGrades = Grade::loadGradesFromFile();
-    vector<Students> allStudents = Students::loadStudentsFromFile();
+    
 
     for (const Grade& grade : allGrades) {
         // ZnajdŸ studenta, który ma tê ocenê
@@ -164,6 +193,22 @@ TeacherPanel::TeacherPanel(wxWindow* parent, const wxString& teacherName)
     SetSizer(mainSizer);
     
     
+}
+std::string GenerateUniqueGradeId(const std::vector<Grade>& allGrades) {
+    int maxId = 0;
+
+    // Wyszukaj najwiêkszy numer ID w istniej¹cych ocenach
+    std::regex idRegex("^g(\\d+)$");
+    for (const auto& grade : allGrades) {
+        std::smatch match;
+        if (std::regex_match(grade.id, match, idRegex)) {
+            int currentId = std::stoi(match[1].str());
+            maxId = std::max(maxId, currentId);
+        }
+    }
+
+    // Zwróæ nowe ID w formacie "g" + (maxId + 1)
+    return "g" + std::to_string(maxId + 1);
 }
 
 void TeacherPanel::OnSearch(wxCommandEvent& event)
@@ -270,8 +315,15 @@ void TeacherPanel::FilterData(const wxString& searchText, bool filterGrades)
 
 void TeacherPanel::OnAddGrade(wxCommandEvent& event)
 {
+    // Wyœwietlenie dialogu do dodania oceny
     ShowAddGradeDialog();
+
+    // Odœwie¿enie listy ocen
+    RefreshGradesList();
 }
+
+
+
 void TeacherPanel::OnRemoveGrade(wxCommandEvent& event)
 {
     ShowRemoveGradeDialog();
@@ -343,7 +395,7 @@ void TeacherPanel::ShowRemoveGradeDialog() {
 
                 auto it = std::find_if(allGrades.begin(), allGrades.end(), [&](const Grade& g) {
                     return g.subject == subject.ToStdString() && g.grade == grade;
-                });
+                    });
 
                 if (it != allGrades.end()) {
                     student.removeGrade(it->id);
@@ -358,7 +410,8 @@ void TeacherPanel::ShowRemoveGradeDialog() {
                     // Odœwie¿ listê ocen
                     RefreshGradesList();
                     wxMessageBox("Grade removed successfully!", "Success", wxOK | wxICON_INFORMATION);
-                } else {
+                }
+                else {
                     wxMessageBox("Grade not found!", "Error", wxOK | wxICON_ERROR);
                 }
                 break;
@@ -448,26 +501,33 @@ void TeacherPanel::ShowAddGradeDialog()
         wxString subject = subjectComboBox->GetValue();
         double grade = wxAtof(gradeComboBox->GetValue());
         wxString comment = commentTextCtrl->GetValue();
-
         // Dodaj ocenê do odpowiedniego studenta
         for (Students& student : allStudents) {
             if (studentName == student.first_name + " " + student.last_name) {
-                Grade newGrade("generated_id", grade, subject.ToStdString(), comment.ToStdString(), wxDateTime::Now().FormatISODate().ToStdString());
+                string newGradeId = GenerateUniqueGradeId(allGrades);
+                Grade newGrade(newGradeId, grade, subject.ToStdString(), comment.ToStdString(), wxDateTime::Now().FormatISODate().ToStdString());
                 student.addGrade(newGrade.id);
 
-                // Zapisz ocenê do pliku JSON
-                vector<Grade> grades = Grade::loadGradesFromFile();
-                grades.push_back(newGrade);
-                Grade::saveGradesToFile(grades);
 
-                // Zapisz zaktualizowan¹ listê studentów
+
+                student.grades.push_back(newGradeId);
+
+                // Dodaj ocenê do listy wszystkich ocen
+                allGrades.push_back(newGrade);
+
+                // Zapisz zmiany do plików
+                Grade::saveGradesToFile(allGrades);
                 Students::saveStudentsToFile(allStudents);
 
-                // Odœwie¿ listê ocen
-                RefreshGradesList();
                 break;
             }
         }
+
+
+        // Odœwie¿ listê ocen
+        RefreshGradesList();
+        wxMessageBox("Grade added successfully!", "Success", wxOK | wxICON_INFORMATION);
+
     }
 
     addGradeDialog->Destroy();
@@ -475,6 +535,7 @@ void TeacherPanel::ShowAddGradeDialog()
 
 void TeacherPanel::RefreshGradesList()
 {
+
     if (!gradesList) return;
 
     gradesList->Freeze();
@@ -484,11 +545,10 @@ void TeacherPanel::RefreshGradesList()
     vector<Students> allStudents = Students::loadStudentsFromFile();
 
     for (const Grade& grade : allGrades) {
-        // ZnajdŸ studenta dla tej oceny
         for (const Students& student : allStudents) {
             if (std::find(student.grades.begin(), student.grades.end(), grade.id) != student.grades.end()) {
                 long index = gradesList->InsertItem(gradesList->GetItemCount(),
-                    wxString(student.first_name + " " + student.last_name));
+                    student.first_name + " " + student.last_name);
                 gradesList->SetItem(index, 1, grade.subject);
                 gradesList->SetItem(index, 2, wxString::Format("%.1f", grade.grade));
                 gradesList->SetItem(index, 3, grade.date);
