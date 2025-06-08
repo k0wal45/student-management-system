@@ -6,13 +6,13 @@
 #include <iostream>
 #include "json.hpp" // Biblioteka JSON (np. nlohmann/json)
 #include "Grade.h" 
+#include "Exam.h"
 
 using namespace std;
 using json = nlohmann::json;
 
 class Teacher {
 public:
-    // Pola prywatne
     string id;
     string first_name;
     string last_name;
@@ -29,7 +29,7 @@ public:
     // Metody publiczne
     void addGrade(const string& student_id, const Grade& grade);
     void removeGrade(const string& grade_id);
-    void addExam(const string& exam_id);
+    void addExam(const string& student_id, const Exam& exam);
     void removeExam(const string& exam_id);
     void displayTeacherInfo() const;
 

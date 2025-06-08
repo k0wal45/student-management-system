@@ -114,13 +114,67 @@ void Teacher::removeGrade(const string& grade_id) {
 
 
 // Dodanie egzaminu
-void Teacher::addExam(const string& exam_id) {
-    exams.push_back(exam_id);
+void Teacher::addExam(const string& student_id, const Exam& exam) {
+    // Wczytanie listy egzaminów z pliku
+    vector<Exam> exams = Exam::loadExamsFromFile();
+
+    // Dodanie nowego egzaminu do listy egzaminów
+    exams.push_back(exam);
+
+    // Zapisanie zaktualizowanej listy egzaminów do pliku
+    Exam::saveExamsToFile(exams);
+
+    // Dodanie ID egzaminu do listy egzaminów nauczyciela
+    this->exams.push_back(exam.id);
+
+    // Zapisanie zaktualizowanej listy nauczycieli do pliku
+    vector<Teacher> teachers = Teacher::loadTeachersFromFile();
+    for (auto& teacher : teachers) {
+        if (teacher.id == this->id) {
+            teacher.exams = this->exams; // Aktualizacja listy egzaminów nauczyciela
+            break;
+        }
+    }
+    Teacher::saveTeachersToFile(teachers);
+
+    cout << "Dodano egzamin o ID: " << exam.id << " do nauczyciela o ID: " << this->id << endl;
 }
 
 // Usuniêcie egzaminu
 void Teacher::removeExam(const string& exam_id) {
-    exams.erase(remove(exams.begin(), exams.end(), exam_id), exams.end());
+    // Wczytanie listy egzaminów z pliku
+    vector<Exam> exams = Exam::loadExamsFromFile();
+
+    // Usuniêcie egzaminu z globalnej listy egzaminów
+    auto examIt = remove_if(exams.begin(), exams.end(), [&exam_id](const Exam& exam) {
+        return exam.id == exam_id;
+        });
+
+    if (examIt != exams.end()) {
+        exams.erase(examIt, exams.end());
+        Exam::saveExamsToFile(exams);
+
+        // Usuniêcie ID egzaminu z listy egzaminów nauczyciela
+        auto teacherExamIt = find(this->exams.begin(), this->exams.end(), exam_id);
+        if (teacherExamIt != this->exams.end()) {
+            this->exams.erase(teacherExamIt);
+        }
+
+        // Zapisanie zaktualizowanej listy nauczycieli do pliku
+        vector<Teacher> teachers = Teacher::loadTeachersFromFile();
+        for (auto& teacher : teachers) {
+            if (teacher.id == this->id) {
+                teacher.exams = this->exams; // Aktualizacja listy egzaminów nauczyciela
+                break;
+            }
+        }
+        Teacher::saveTeachersToFile(teachers);
+
+        cout << "Usuniêto egzamin o ID: " << exam_id << " z nauczyciela o ID: " << this->id << endl;
+    }
+    else {
+        cerr << "Nie znaleziono egzaminu o ID: " << exam_id << endl;
+    }
 }
 
 // Wyœwietlenie informacji o nauczycielu

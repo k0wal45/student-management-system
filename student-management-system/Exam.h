@@ -11,6 +11,14 @@ using json = nlohmann::json;
 
 class Exam {
 public:
+
+    // Pola prywatne
+    string id;
+    string date;
+    string comment;
+    string subject;
+    string teacher_id;
+
     // Konstruktor i destruktor
     Exam(const string& id, const string& date, const string& comment, const string& subject, const string& teacher_id);
     ~Exam();
@@ -24,14 +32,6 @@ public:
     static Exam getExamById(const string& exam_id); // Pobranie egzaminu po ID
 
     void displayExamInfo() const;
-
-private:
-    // Pola prywatne
-    string id;
-    string date;
-    string comment;
-    string subject;
-    string teacher_id;
 
     static const string filePath; // Œcie¿ka do pliku JSON
 };
