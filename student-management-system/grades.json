@@ -3,14 +3,14 @@
     "id": "g1",
     "grade": 5.0,
     "subject": "Matematyka",
-    "comment": "�wietna praca na egzaminie",
+    "comment": "Swietna praca na egzaminie",
     "date": "2023-10-01"
   },
   {
     "id": "g2",
     "grade": 4.5,
     "subject": "Fizyka",
-    "comment": "Dobra znajomo�� materia�u",
+    "comment": "Dobra znajomosc materialu",
     "date": "2023-10-02"
   },
   {

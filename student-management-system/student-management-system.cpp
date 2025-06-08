@@ -1,24 +1,22 @@
 ﻿#include <iostream>
-#include "Students.h"
-
-using namespace std;
+#include "auth.h"
 
 int main() {
-    try {
-        // Wczytanie studentów z pliku JSON
-        vector<Students> students = Students::loadStudentsFromFile();
+    std::string login, password;
 
-        // Wyświetlenie liczby studentów
-        cout << "Liczba studentow: " << students.size() << endl;
+    std::cout << "Podaj login: ";
+    std::cin >> login;
 
-        // Iteracja po studentach i wyświetlenie ich informacji oraz ocen
-        for (const auto& student : students) {
-            cout << "\nInformacje o studencie:" << endl;
-            student.displayStudentInfo(); // Wyświetlenie informacji o studencie i jego ocenach
-        }
+    std::cout << "Podaj hasło: ";
+    std::cin >> password;
+
+    std::string role = Auth::AuthUser(login, password);
+
+    if (!role.empty()) {
+        std::cout << "Zalogowano pomyślnie! Rola: " << role << std::endl;
     }
-    catch (const exception& e) {
-        cerr << "Wystapil blad: " << e.what() << endl;
+    else {
+        std::cout << "Autoryzacja nieudana." << std::endl;
     }
 
     return 0;

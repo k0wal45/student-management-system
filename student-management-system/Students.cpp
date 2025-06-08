@@ -16,7 +16,7 @@ Students::~Students() {}
 
 // Dodanie oceny do studenta
 void Students::addGrade(const string& grade_id) {
-    vector<Grade> allGrades = Grade::loadGradesFromFile(); // Poprawiono: wywo³anie metody klasy Grade
+    vector<Grade> allGrades = Grade::loadGradesFromFile(); // Wczytanie wszystkich ocen z pliku JSON
 
     auto it = find_if(allGrades.begin(), allGrades.end(), [&grade_id](const Grade& grade) {
         return grade.id == grade_id;
@@ -25,6 +25,16 @@ void Students::addGrade(const string& grade_id) {
     if (it != allGrades.end()) {
         grades.push_back(grade_id); // Dodanie ID oceny do listy
         cout << "Dodano ocenê o ID: " << grade_id << " dla studenta " << first_name << " " << last_name << endl;
+
+        // Wczytanie wszystkich studentów, aktualizacja i zapis do pliku
+        vector<Students> students = loadStudentsFromFile();
+        for (auto& student : students) {
+            if (student.id == id) {
+                student.grades = grades; // Aktualizacja listy ocen
+                break;
+            }
+        }
+        saveStudentsToFile(students); // Zapisanie zaktualizowanych danych do pliku
     }
     else {
         cerr << "Nie znaleziono oceny o ID: " << grade_id << endl;
@@ -38,6 +48,16 @@ void Students::removeGrade(const string& grade_id) {
     if (it != grades.end()) {
         grades.erase(it); // Usuniêcie ID oceny z listy
         cout << "Usuniêto ocenê o ID: " << grade_id << " dla studenta " << first_name << " " << last_name << endl;
+
+        // Wczytanie wszystkich studentów, aktualizacja i zapis do pliku
+        vector<Students> students = loadStudentsFromFile();
+        for (auto& student : students) {
+            if (student.id == id) {
+                student.grades = grades; // Aktualizacja listy ocen
+                break;
+            }
+        }
+        saveStudentsToFile(students); // Zapisanie zaktualizowanych danych do pliku
     }
     else {
         cerr << "Nie znaleziono oceny o ID: " << grade_id << " w liœcie ocen studenta." << endl;
@@ -46,7 +66,7 @@ void Students::removeGrade(const string& grade_id) {
 
 // Wyœwietlenie ocen studenta
 void Students::listGrades() const {
-    vector<Grade> allGrades = Grade::loadGradesFromFile(); // Poprawiono: wywo³anie metody klasy Grade
+    vector<Grade> allGrades = Grade::loadGradesFromFile(); // Wczytanie wszystkich ocen z pliku JSON
 
     cout << "\nOceny studenta " << first_name << " " << last_name << ":" << endl;
 
@@ -59,7 +79,6 @@ void Students::listGrades() const {
             cout << "  ID: " << it->id << "\n  Ocena: " << it->grade
                 << "\n  Przedmiot: " << it->subject << "\n  Komentarz: " << it->comment
                 << "\n  Data: " << it->date << endl << "+++";
-           
         }
         else {
             cout << "Nie znaleziono oceny o ID: " << gradeId << endl;
@@ -134,7 +153,7 @@ void Students::saveStudentsToFile(const vector<Students>& students) {
 
 // Pobranie obiektu Grade na podstawie ID
 Grade Students::getGrade(const string& grade_id) const {
-    vector<Grade> allGrades = Grade::loadGradesFromFile(); // Poprawiono: wywo³anie metody klasy Grade
+    vector<Grade> allGrades = Grade::loadGradesFromFile(); // Wczytanie wszystkich ocen z pliku JSON
 
     auto it = find_if(allGrades.begin(), allGrades.end(), [&grade_id](const Grade& grade) {
         return grade.id == grade_id;
