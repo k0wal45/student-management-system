@@ -51,9 +51,6 @@
     <ClCompile Include="Students.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="Users.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
     <ClCompile Include="bcrypt.cpp">
       <Filter>lib\bcrypt</Filter>
     </ClCompile>
@@ -101,9 +98,6 @@
     <ClInclude Include="Students.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
-    <ClInclude Include="Users.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
     <ClInclude Include="bcrypt.h">
       <Filter>lib\bcrypt</Filter>
     </ClInclude>
@@ -139,8 +133,6 @@
     <None Include="exams.json">
       <Filter>Database</Filter>
     </None>
-    <None Include="teachers.json">
-      <Filter>Database</Filter>
-    </None>
+    <None Include="teachers.json" />
   </ItemGroup>
 </Project>

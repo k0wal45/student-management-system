@@ -1,6 +1,7 @@
 #include "Students.h"
 #include <fstream>
 #include <algorithm>
+#include "bcrypt.h"
 
 const string Students::filePath = "students.json"; // Œcie¿ka do pliku JSON
 
@@ -168,11 +169,69 @@ Grade Students::getGrade(const string& grade_id) const {
 }
 
 // Dodanie nowego studenta
-void Students::addStudent(const Students& newStudent) {
-    vector<Students> students = loadStudentsFromFile(); // Wczytanie wszystkich studentów z pliku
-    students.push_back(newStudent); // Dodanie nowego studenta do listy
-    saveStudentsToFile(students); // Zapisanie zaktualizowanej listy do pliku
+void Students::addStudent(const Students& newStudent, const string& password) {
+    // Wczytanie wszystkich studentów z pliku
+    vector<Students> students = loadStudentsFromFile();
+
+    // Sprawdzenie, czy student o podanym ID ju¿ istnieje
+    auto it = find_if(students.begin(), students.end(), [&newStudent](const Students& student) {
+        return student.id == newStudent.id;
+        });
+
+    if (it != students.end()) {
+        cerr << "Student o podanym ID ju¿ istnieje." << endl;
+        return;
+    }
+
+    // Dodanie nowego studenta do listy
+    students.push_back(newStudent);
+    saveStudentsToFile(students); // Zapisanie zaktualizowanej listy studentów do pliku
     cout << "Dodano nowego studenta: " << newStudent.first_name << " " << newStudent.last_name << endl;
+
+    // Wczytanie bazy u¿ytkowników
+    ifstream usersFile("users.json");
+    json usersData;
+
+    if (usersFile.is_open()) {
+        usersFile >> usersData;
+        usersFile.close();
+    }
+    else {
+        cerr << "Nie mo¿na otworzyæ pliku users.json" << endl;
+        return;
+    }
+
+    // Sprawdzenie, czy u¿ytkownik o podanym loginie (email) ju¿ istnieje
+    for (const auto& user : usersData) {
+        if (user["login"] == newStudent.email) {
+            cerr << "U¿ytkownik o podanym loginie (email) ju¿ istnieje." << endl;
+            return;
+        }
+    }
+
+    // Hashowanie has³a
+    string hashedPassword = bcrypt::generateHash(password);
+
+    // Dodanie nowego u¿ytkownika do bazy
+    json newUser = {
+        {"login", newStudent.email},
+        {"password", hashedPassword},
+        {"role", "student"}
+    };
+    usersData.push_back(newUser);
+
+    // Zapisanie zaktualizowanej bazy u¿ytkowników
+    ofstream usersOutFile("users.json");
+    if (usersOutFile.is_open()) {
+        usersOutFile << usersData.dump(4); // Zapisanie w formacie JSON z wciêciami
+        usersOutFile.close();
+    }
+    else {
+        cerr << "Nie mo¿na zapisaæ do pliku users.json" << endl;
+        return;
+    }
+
+    cout << "Dodano nowego u¿ytkownika o loginie: " << newStudent.email << endl;
 }
 
 // Usuniêcie studenta (wraz z jego ocenami)
@@ -190,6 +249,41 @@ void Students::removeStudent(const string& student_id) {
             }), allGrades.end());
 
         Grade::saveGradesToFile(allGrades); // Zapisanie zaktualizowanej listy ocen
+
+        // Usuniêcie u¿ytkownika z bazy `users.json`
+        ifstream usersFile("users.json");
+        json usersData;
+
+        if (usersFile.is_open()) {
+            usersFile >> usersData;
+            usersFile.close();
+        }
+        else {
+            cerr << "Nie mo¿na otworzyæ pliku users.json" << endl;
+            return;
+        }
+
+        // Znalezienie i usuniêcie u¿ytkownika na podstawie emaila studenta
+        auto userIt = find_if(usersData.begin(), usersData.end(), [&it](const json& user) {
+            return user["login"] == it->email;
+            });
+
+        if (userIt != usersData.end()) {
+            usersData.erase(userIt); // Usuniêcie u¿ytkownika
+            ofstream usersOutFile("users.json");
+            if (usersOutFile.is_open()) {
+                usersOutFile << usersData.dump(4); // Zapisanie zaktualizowanej bazy u¿ytkowników
+                usersOutFile.close();
+                cout << "Usuniêto u¿ytkownika o loginie: " << it->email << endl;
+            }
+            else {
+                cerr << "Nie mo¿na zapisaæ do pliku users.json" << endl;
+                return;
+            }
+        }
+        else {
+            cerr << "Nie znaleziono u¿ytkownika o loginie: " << it->email << endl;
+        }
 
         // Usuniêcie studenta
         cout << "Usuniêto studenta: " << it->first_name << " " << it->last_name << endl;

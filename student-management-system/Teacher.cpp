@@ -3,6 +3,7 @@
 #include <algorithm>
 #include "Grade.h"
 #include "Students.h"
+#include "bcrypt.h"
 
 // Œcie¿ka do pliku JSON
 const string Teacher::filePath = "teachers.json";
@@ -243,11 +244,63 @@ void Teacher::saveTeachersToFile(const vector<Teacher>& teachers) {
 }
 
 // Dodanie nauczyciela
-void Teacher::addTeacher(const Teacher& newTeacher) {
+void Teacher::addTeacher(const Teacher& newTeacher, const string password) {
+    // Wczytanie listy nauczycieli z pliku
     vector<Teacher> teachers = loadTeachersFromFile();
+
+    // Dodanie nowego nauczyciela do listy
     teachers.push_back(newTeacher);
+
+    // Zapisanie zaktualizowanej listy nauczycieli do pliku
     saveTeachersToFile(teachers);
+
+    // Dodanie nowego u¿ytkownika do pliku `users.json`
+    ifstream usersFile("users.json");
+    json usersData;
+
+    if (usersFile.is_open()) {
+        usersFile >> usersData;
+        usersFile.close();
+    }
+    else {
+        cerr << "Nie mo¿na otworzyæ pliku users.json" << endl;
+        return;
+    }
+
+    // Sprawdzenie, czy u¿ytkownik z takim loginem ju¿ istnieje
+    auto userIt = find_if(usersData.begin(), usersData.end(), [&newTeacher](const json& user) {
+        return user["login"] == newTeacher.email;
+        });
+
+	string hashedPassword = bcrypt::generateHash(password); // Haszowanie has³a
+
+    if (userIt == usersData.end()) {
+        // Dodanie nowego u¿ytkownika
+        json newUser = {
+            {"login", newTeacher.email},
+            {"password", hashedPassword}, // Domyœlne has³o, które mo¿na zmieniæ
+            {"role", "teacher"}               // Rola u¿ytkownika
+        };
+        usersData.push_back(newUser);
+
+        // Zapisanie zaktualizowanej bazy u¿ytkowników do pliku
+        ofstream usersOutFile("users.json");
+        if (usersOutFile.is_open()) {
+            usersOutFile << usersData.dump(4);
+            usersOutFile.close();
+            cout << "Dodano nowego u¿ytkownika o loginie: " << newTeacher.email << endl;
+        }
+        else {
+            cerr << "Nie mo¿na zapisaæ do pliku users.json" << endl;
+        }
+    }
+    else {
+        cerr << "U¿ytkownik o loginie: " << newTeacher.email << " ju¿ istnieje w systemie." << endl;
+    }
+
+    cout << "Dodano nauczyciela o ID: " << newTeacher.id << endl;
 }
+
 
 // Usuniêcie nauczyciela
 void Teacher::removeTeacher(const string& teacher_id) {
@@ -259,6 +312,9 @@ void Teacher::removeTeacher(const string& teacher_id) {
     if (it != teachers.end()) {
         // Pobranie listy egzaminów powi¹zanych z nauczycielem
         vector<string> examsToRemove = it->exams;
+
+        // Pobranie emaila nauczyciela przed usuniêciem
+        string teacherEmail = it->email;
 
         // Usuniêcie nauczyciela z listy
         teachers.erase(it, teachers.end());
@@ -274,6 +330,41 @@ void Teacher::removeTeacher(const string& teacher_id) {
 
         // Zapisanie zaktualizowanej listy egzaminów do pliku
         Exam::saveExamsToFile(exams);
+
+        // Usuniêcie u¿ytkownika z bazy `users.json`
+        ifstream usersFile("users.json");
+        json usersData;
+
+        if (usersFile.is_open()) {
+            usersFile >> usersData;
+            usersFile.close();
+        }
+        else {
+            cerr << "Nie mo¿na otworzyæ pliku users.json" << endl;
+            return;
+        }
+
+        // Znalezienie i usuniêcie u¿ytkownika na podstawie emaila nauczyciela
+        auto userIt = find_if(usersData.begin(), usersData.end(), [&teacherEmail](const json& user) {
+            return user["login"] == teacherEmail;
+            });
+
+        if (userIt != usersData.end()) {
+            usersData.erase(userIt); // Usuniêcie u¿ytkownika
+            ofstream usersOutFile("users.json");
+            if (usersOutFile.is_open()) {
+                usersOutFile << usersData.dump(4); // Zapisanie zaktualizowanej bazy u¿ytkowników
+                usersOutFile.close();
+                cout << "Usuniêto u¿ytkownika o loginie: " << teacherEmail << endl;
+            }
+            else {
+                cerr << "Nie mo¿na zapisaæ do pliku users.json" << endl;
+                return;
+            }
+        }
+        else {
+            cerr << "Nie znaleziono u¿ytkownika o loginie: " << teacherEmail << endl;
+        }
 
         cout << "Usuniêto nauczyciela o ID: " << teacher_id << " oraz powi¹zane z nim egzaminy." << endl;
     }

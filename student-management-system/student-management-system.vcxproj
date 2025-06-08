@@ -149,7 +149,6 @@
     <ClCompile Include="Students.cpp" />
     <ClCompile Include="Teacher.cpp" />
     <ClCompile Include="TeacherPanel.cpp" />
-    <ClCompile Include="Users.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\Desktop\json.hpp" />
@@ -168,7 +167,6 @@
     <ClInclude Include="Students.h" />
     <ClInclude Include="Teacher.h" />
     <ClInclude Include="TeacherPanel.h" />
-    <ClInclude Include="Users.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exams.json" />
