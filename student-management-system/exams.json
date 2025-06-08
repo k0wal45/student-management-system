@@ -1,9 +1,23 @@
 ﻿[
   {
-    "comment": "�wietna praca na egzaminie",
+    "id": "e1",
     "date": "2023-10-01",
-    "id": "g1",
-    "subject": "Matematyka"
+    "comment": "Egzamin końcowy z matematyki",
+    "subject": "Mathematics",
+    "teacher_id": "t1"
+  },
+  {
+    "id": "e2",
+    "date": "2023-11-15",
+    "comment": "Egzamin semestralny z fizyki",
+    "subject": "Physics",
+    "teacher_id": "t2"
+  },
+  {
+    "id": "e3",
+    "date": "2023-12-20",
+    "comment": "Egzamin praktyczny z chemii",
+    "subject": "Chemistry",
+    "teacher_id": "t3"
   }
-  
 ]

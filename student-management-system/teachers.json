@@ -1,0 +1,38 @@
+[
+  {
+    "id": "1",
+    "first_name": "Anna",
+    "last_name": "Nowak",
+    "subject": "Mathematics",
+    "grades": [
+      "g1",
+      "g2",
+      "g3"
+    ],
+    "exams": [
+      "e1",
+      "e2"
+    ]
+  },
+  {
+    "id": "2",
+    "first_name": "Piotr",
+    "last_name": "Kowalski",
+    "subject": "Physics",
+    "grades": [
+      "g4",
+      "g5"
+    ],
+    "exams": [
+      "e3"
+    ]
+  },
+  {
+    "id": "3",
+    "first_name": "Maria",
+    "last_name": "Wiœniewska",
+    "subject": "Chemistry",
+    "grades": [],
+    "exams": []
+  }
+]

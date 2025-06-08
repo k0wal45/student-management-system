@@ -166,3 +166,52 @@ Grade Students::getGrade(const string& grade_id) const {
         throw runtime_error("Nie znaleziono oceny o ID: " + grade_id);
     }
 }
+
+// Dodanie nowego studenta
+void Students::addStudent(const Students& newStudent) {
+    vector<Students> students = loadStudentsFromFile(); // Wczytanie wszystkich studentów z pliku
+    students.push_back(newStudent); // Dodanie nowego studenta do listy
+    saveStudentsToFile(students); // Zapisanie zaktualizowanej listy do pliku
+    cout << "Dodano nowego studenta: " << newStudent.first_name << " " << newStudent.last_name << endl;
+}
+
+// Usuniêcie studenta (wraz z jego ocenami)
+void Students::removeStudent(const string& student_id) {
+    vector<Students> students = loadStudentsFromFile(); // Wczytanie wszystkich studentów z pliku
+    auto it = find_if(students.begin(), students.end(), [&student_id](const Students& student) {
+        return student.id == student_id;
+        });
+
+    if (it != students.end()) {
+        // Usuniêcie ocen studenta
+        vector<Grade> allGrades = Grade::loadGradesFromFile(); // Wczytanie wszystkich ocen z pliku JSON
+        allGrades.erase(remove_if(allGrades.begin(), allGrades.end(), [&it](const Grade& grade) {
+            return find(it->grades.begin(), it->grades.end(), grade.id) != it->grades.end();
+            }), allGrades.end());
+
+        Grade::saveGradesToFile(allGrades); // Zapisanie zaktualizowanej listy ocen
+
+        // Usuniêcie studenta
+        cout << "Usuniêto studenta: " << it->first_name << " " << it->last_name << endl;
+        students.erase(it); // Usuniêcie studenta z listy
+        saveStudentsToFile(students); // Zapisanie zaktualizowanej listy studentów do pliku
+    }
+    else {
+        cerr << "Nie znaleziono studenta o ID: " << student_id << endl;
+    }
+}
+
+Students Students::getStudentById(const string& student_id) {
+    vector<Students> students = loadStudentsFromFile(); // Wczytanie wszystkich studentów z pliku
+
+    auto it = find_if(students.begin(), students.end(), [&student_id](const Students& student) {
+        return student.id == student_id;
+        });
+
+    if (it != students.end()) {
+        return *it; // Zwrócenie znalezionego studenta
+    }
+    else {
+        throw runtime_error("Nie znaleziono studenta o ID: " + student_id);
+    }
+}

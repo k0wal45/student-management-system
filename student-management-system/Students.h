@@ -38,6 +38,9 @@ public:
     void listGrades() const;                     // Wyœwietlenie ocen studenta
     void displayStudentInfo() const;             // Wyœwietlenie informacji o studencie
     Grade getGrade(const string& grade_id) const; // Pobranie obiektu Grade na podstawie ID
+    static void addStudent(const Students& newStudent); // Dodanie studenta
+    static void removeStudent(const string& student_id); // Usuniêcie studenta
+    static Students getStudentById(const string& student_id);
 
     // Operacje na plikach
     static vector<Students> loadStudentsFromFile(); // Wczytanie studentów z pliku JSON
