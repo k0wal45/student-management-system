@@ -1,6 +1,25 @@
 #include "AdminPanel.h"
-#include "MainFrame.h"
+
 #include <wx/listctrl.h>
+
+#include "MainFrame.h"
+
+#include <wx/datectrl.h>
+
+
+#include "TeacherPanel.h"
+
+#include <wx/datectrl.h>
+#include "Students.h"
+#include "Grade.h"
+#include <set>
+#include <regex>
+#include <algorithm>
+#include "StudentPanel.h"
+
+#include <iterator>
+#include <wx/arrstr.h>
+
 
 AdminPanel::AdminPanel(wxWindow* parent)
     : wxPanel(parent)
@@ -18,68 +37,74 @@ AdminPanel::AdminPanel(wxWindow* parent)
     // Notebook z zak³adkami
     notebook = new wxNotebook(this, wxID_ANY);
 
-   
-
     // Zak³adka Studenci
     wxPanel* studentsPanel = new wxPanel(notebook);
     wxBoxSizer* studentsSizer = new wxBoxSizer(wxVERTICAL);
-    
 
-    
+    // Przyciski dodawania i usuwania studentów
+    wxBoxSizer* studentButtonSizer = new wxBoxSizer(wxHORIZONTAL);
     wxButton* addStudentBtn = new wxButton(studentsPanel, wxID_ANY, "Add New Student");
     addStudentBtn->Bind(wxEVT_BUTTON, &AdminPanel::OnAddStudent, this);
 
+    wxButton* removeStudentBtn = new wxButton(studentsPanel, wxID_ANY, "Remove Student");
+    removeStudentBtn->Bind(wxEVT_BUTTON, &AdminPanel::OnRemoveStudent, this);
+
+    studentButtonSizer->Add(addStudentBtn, 0, wxALL, 5);
+    studentButtonSizer->Add(removeStudentBtn, 0, wxALL, 5);
+
+    studentsSizer->Add(studentButtonSizer, 0, wxALL, 5);
+
+    // Lista studentów
     wxListCtrl* studentsList = new wxListCtrl(studentsPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
     studentsList->AppendColumn("ID", wxLIST_FORMAT_LEFT, 80);
-    studentsList->AppendColumn("Name", wxLIST_FORMAT_LEFT, 150);
+    studentsList->AppendColumn("First name", wxLIST_FORMAT_LEFT, 150);
+    studentsList->AppendColumn("Last Name", wxLIST_FORMAT_LEFT, 150);
     studentsList->AppendColumn("Email", wxLIST_FORMAT_LEFT, 200);
-    
-    // Przyk³adowi studenci
-    long index = studentsList->InsertItem(0, "1");
-    studentsList->SetItem(index, 1, "Alice Smith");
-    studentsList->SetItem(index, 2, "alice@example.com");
+    studentsList->AppendColumn("Major", wxLIST_FORMAT_LEFT, 120);
+    studentsList->AppendColumn("Year", wxLIST_FORMAT_LEFT, 80);
 
-    index = studentsList->InsertItem(1, "2");
-    studentsList->SetItem(index, 1, "Bob Johnson");
-    studentsList->SetItem(index, 2, "bob@example.com");
+    vector<Students> students = Students::loadStudentsFromFile();
 
-    studentsSizer->Add(addStudentBtn, 0, wxALL, 5);
+    for (const Students& student : students) {
+        long index = studentsList->InsertItem(studentsList->GetItemCount(), student.id);
+        studentsList->SetItem(index, 1, student.first_name);
+        studentsList->SetItem(index, 2, student.last_name);
+        studentsList->SetItem(index, 3, student.email);
+        studentsList->SetItem(index, 4, student.major);
+        studentsList->SetItem(index, 5, wxString::Format("%d", student.year));
+    }
     studentsSizer->Add(studentsList, 1, wxALL | wxEXPAND, 5);
     studentsPanel->SetSizer(studentsSizer);
+
+    notebook->AddPage(studentsPanel, "Students");
 
     // Zak³adka Nauczyciele
     wxPanel* teachersPanel = new wxPanel(notebook);
     wxBoxSizer* teachersSizer = new wxBoxSizer(wxVERTICAL);
 
+    // Przyciski dodawania nauczycieli
+    wxBoxSizer* teacherButtonSizer = new wxBoxSizer(wxHORIZONTAL);
     wxButton* addTeacherBtn = new wxButton(teachersPanel, wxID_ANY, "Add New Teacher");
     addTeacherBtn->Bind(wxEVT_BUTTON, &AdminPanel::OnAddTeacher, this);
 
+    teacherButtonSizer->Add(addTeacherBtn, 0, wxALL, 5);
+
+    teachersSizer->Add(teacherButtonSizer, 0, wxALL, 5);
+
+    // Lista nauczycieli
     wxListCtrl* teachersList = new wxListCtrl(teachersPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
     teachersList->AppendColumn("ID", wxLIST_FORMAT_LEFT, 80);
-    teachersList->AppendColumn("Name", wxLIST_FORMAT_LEFT, 150);
+    teachersList->AppendColumn("First name", wxLIST_FORMAT_LEFT, 150);
+    teachersList->AppendColumn("Last Name", wxLIST_FORMAT_LEFT, 150);
     teachersList->AppendColumn("Email", wxLIST_FORMAT_LEFT, 200);
+    teachersList->AppendColumn("Subject", wxLIST_FORMAT_LEFT, 150);
 
-    // Przyk³adowi nauczyciele
-    index = teachersList->InsertItem(0, "1");
-    teachersList->SetItem(index, 1, "John Doe");
-    teachersList->SetItem(index, 2, "john@example.com");
-
-    index = teachersList->InsertItem(1, "2");
-    teachersList->SetItem(index, 1, "Jane Smith");
-    teachersList->SetItem(index, 2, "jane@example.com");
-
-    teachersSizer->Add(addTeacherBtn, 0, wxALL, 5);
     teachersSizer->Add(teachersList, 1, wxALL | wxEXPAND, 5);
     teachersPanel->SetSizer(teachersSizer);
 
-    notebook->AddPage(studentsPanel, "Students");
     notebook->AddPage(teachersPanel, "Teachers");
 
     mainSizer->Add(notebook, 1, wxALL | wxEXPAND, 5);
-
-   
-
-    
 
     // Przycisk powrotu
     wxButton* backBtn = new wxButton(this, wxID_ANY, "Back to Login");
@@ -90,7 +115,110 @@ AdminPanel::AdminPanel(wxWindow* parent)
 
     mainSizer->Add(backBtn, 0, wxALL | wxALIGN_RIGHT, 5);
     SetSizer(mainSizer);
-    
+}
+
+
+
+
+    void AdminPanel::RefreshStudentList()
+    {
+
+        if (!studentsList) return;
+
+        studentsList->Freeze();
+        studentsList->DeleteAllItems();
+
+        vector<Students> allStudents = Students::loadStudentsFromFile();
+
+        for (const Students& student : allStudents) {
+            long index = studentsList->InsertItem(studentsList->GetItemCount(), student.id);
+            studentsList->SetItem(index, 1, student.first_name);
+            studentsList->SetItem(index, 2, student.last_name);
+            studentsList->SetItem(index, 3, student.email);
+            studentsList->SetItem(index, 4, student.major);
+            studentsList->SetItem(index, 5, wxString::Format("%d", student.year));
+        }
+
+        studentsList->Thaw();
+        studentsList->Refresh();
+    }
+
+
+
+
+
+
+void AdminPanel::OnRemoveStudent(wxCommandEvent& event)
+{
+    wxDialog dlg(this, wxID_ANY, "Remove Student", wxDefaultPosition, wxSize(300, 600));
+
+    wxPanel* panel = new wxPanel(&dlg);
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+
+    wxStaticText* title = new wxStaticText(panel, wxID_ANY, "Remove Student");
+    title->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
+    sizer->Add(title, 0, wxALL | wxALIGN_CENTER, 10);
+
+    // Tworzenie pól wejœciowych
+    auto createField = [&](const wxString& labelText) {
+        wxBoxSizer* fieldSizer = new wxBoxSizer(wxVERTICAL);
+
+        wxStaticText* label = new wxStaticText(panel, wxID_ANY, labelText, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
+        fieldSizer->Add(label, 0, wxALL | wxALIGN_CENTER, 5);
+
+        wxTextCtrl* textCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxDefaultPosition, wxSize(450, -1));
+        fieldSizer->Add(textCtrl, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
+
+        return std::make_pair(fieldSizer, textCtrl);
+        };
+
+    auto firstNameField = createField("First Name:");
+    auto lastNameField = createField("Last Name:");
+
+    sizer->Add(firstNameField.first, 0, wxALL | wxEXPAND, 5);
+    sizer->Add(lastNameField.first, 0, wxALL | wxEXPAND, 5);
+
+    // Przyciski
+    wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
+    wxButton* removeBtn = new wxButton(panel, wxID_OK, "Remove");
+    wxButton* cancelBtn = new wxButton(panel, wxID_CANCEL, "Cancel");
+    buttonSizer->Add(removeBtn, 0, wxALL, 5);
+    buttonSizer->Add(cancelBtn, 0, wxALL, 5);
+
+    sizer->Add(buttonSizer, 0, wxALL | wxALIGN_CENTER, 10);
+
+    panel->SetSizer(sizer);
+
+    dlg.Bind(wxEVT_BUTTON, [&dlg, &firstNameField, &lastNameField, this](wxCommandEvent&) {
+        wxString firstName = firstNameField.second->GetValue();
+        wxString lastName = lastNameField.second->GetValue();
+
+        if (firstName.IsEmpty() || lastName.IsEmpty()) {
+            wxMessageBox("Please fill in both fields.", "Error", wxOK | wxICON_ERROR);
+            return;
+        }
+
+        vector<Students> students = Students::loadStudentsFromFile();
+        auto it = std::remove_if(students.begin(), students.end(), [&](const Students& student) {
+            return student.first_name == firstName.ToStdString() && student.last_name == lastName.ToStdString();
+            });
+
+        if (it != students.end()) {
+            students.erase(it, students.end());
+            Students::saveStudentsToFile(students);
+            wxMessageBox("Student removed successfully.", "Success", wxOK | wxICON_INFORMATION);
+            RefreshStudentList();
+        }
+        else {
+            wxMessageBox("Student not found.", "Error", wxOK | wxICON_ERROR);
+        }
+
+        dlg.EndModal(wxID_OK);
+        }, wxID_OK);
+
+    dlg.Bind(wxEVT_BUTTON, [&dlg](wxCommandEvent&) { dlg.EndModal(wxID_CANCEL); }, wxID_CANCEL);
+
+    dlg.ShowModal();
 }
 
 
@@ -98,126 +226,112 @@ AdminPanel::AdminPanel(wxWindow* parent)
 //evant do dodawania studenta
 void AdminPanel::OnAddStudent(wxCommandEvent& event)
 {
+    
     ShowAddUserDialog("Student");
+    RefreshStudentList();
 }
 //evant do dodawania nauczyciela
 void AdminPanel::OnAddTeacher(wxCommandEvent& event)
 {
     ShowAddUserDialog("Teacher");
+    RefreshStudentList();
 }
 
 void AdminPanel::ShowAddUserDialog(const wxString& role)
 {
-    wxDialog dlg(this, wxID_ANY, "Add New " + role, wxDefaultPosition, wxSize(400, 300));
+    wxDialog dlg(this, wxID_ANY, "Add New " + role, wxDefaultPosition, wxSize(400, 600));
 
     wxPanel* panel = new wxPanel(&dlg);
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 
     wxStaticText* title = new wxStaticText(panel, wxID_ANY, "Add New " + role);
     title->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
+    sizer->Add(title, 0, wxALL | wxALIGN_CENTER, 10);
 
-    wxTextCtrl* firstNameCtrl = new wxTextCtrl(panel, wxID_ANY);
-    wxTextCtrl* lastNameCtrl = new wxTextCtrl(panel, wxID_ANY);
-    wxTextCtrl* emailCtrl = new wxTextCtrl(panel, wxID_ANY);
+    // Tworzenie pól wejœciowych
+    auto createField = [&](const wxString& labelText) {
+        wxBoxSizer* fieldSizer = new wxBoxSizer(wxVERTICAL);
 
-    wxFlexGridSizer* inputSizer = new wxFlexGridSizer(2, 5, 10);
-    inputSizer->Add(new wxStaticText(panel, wxID_ANY, "First Name:"));
-    inputSizer->Add(firstNameCtrl);
-    inputSizer->Add(new wxStaticText(panel, wxID_ANY, "Last Name:"));
-    inputSizer->Add(lastNameCtrl);
-    inputSizer->Add(new wxStaticText(panel, wxID_ANY, "Email:"));
-    inputSizer->Add(emailCtrl);
+        wxStaticText* label = new wxStaticText(panel, wxID_ANY, labelText, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
+        fieldSizer->Add(label, 0, wxALL | wxALIGN_CENTER, 5);
 
+        wxTextCtrl* textCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxDefaultPosition, wxSize(300, -1));
+        fieldSizer->Add(textCtrl, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
+
+        return std::make_pair(fieldSizer, textCtrl);
+        };
+
+    auto firstNameField = createField("First Name:");
+    auto lastNameField = createField("Last Name:");
+    auto emailField = createField("Email:");
+    auto majorField = createField("Major:");
+    auto yearField = createField("Year:");
+
+    sizer->Add(firstNameField.first, 0, wxALL | wxEXPAND, 5);
+    sizer->Add(lastNameField.first, 0, wxALL | wxEXPAND, 5);
+    sizer->Add(emailField.first, 0, wxALL | wxEXPAND, 5);
+    sizer->Add(majorField.first, 0, wxALL | wxEXPAND, 5);
+    sizer->Add(yearField.first, 0, wxALL | wxEXPAND, 5);
+
+    // Przyciski
+    wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
     wxButton* addBtn = new wxButton(panel, wxID_OK, "Add");
     wxButton* cancelBtn = new wxButton(panel, wxID_CANCEL, "Cancel");
-
-    wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
     buttonSizer->Add(addBtn, 0, wxALL, 5);
     buttonSizer->Add(cancelBtn, 0, wxALL, 5);
 
-    sizer->Add(title, 0, wxALL | wxALIGN_CENTER, 10);
-    sizer->Add(inputSizer, 0, wxALL | wxALIGN_CENTER, 10);
     sizer->Add(buttonSizer, 0, wxALL | wxALIGN_CENTER, 10);
 
     panel->SetSizer(sizer);
 
-    dlg.Bind(wxEVT_BUTTON, [&dlg](wxCommandEvent&) { dlg.EndModal(wxID_OK); }, wxID_OK);
+    dlg.Bind(wxEVT_BUTTON, [&dlg, &firstNameField, &lastNameField, &emailField, &majorField, &yearField, this](wxCommandEvent&) {
+        wxString firstName = firstNameField.second->GetValue();
+        wxString lastName = lastNameField.second->GetValue();
+        wxString email = emailField.second->GetValue();
+        wxString major = majorField.second->GetValue();
+        wxString yearStr = yearField.second->GetValue();
+
+        if (firstName.IsEmpty() || lastName.IsEmpty() || email.IsEmpty() || major.IsEmpty() || yearStr.IsEmpty()) {
+            wxMessageBox("Please fill in all fields.", "Error", wxOK | wxICON_ERROR);
+            return;
+        }
+
+        int year;
+        if (!yearStr.ToLong((long*)&year) || year <= 0) {
+            wxMessageBox("Year must be a positive number.", "Error", wxOK | wxICON_ERROR);
+            return;
+        }
+
+        // Wczytaj istniej¹cych studentów z pliku
+        vector<Students> students = Students::loadStudentsFromFile();
+
+        // Generowanie unikalnego ID dla nowego studenta
+        std::string newId =  std::to_string(students.size() + 1);
+
+        // Tworzenie nowego obiektu studenta
+        Students newStudent(newId, firstName.ToStdString(), lastName.ToStdString(), "", email.ToStdString(), major.ToStdString(), year, "", {});
+
+        // Dodanie nowego studenta do listy
+        students.push_back(newStudent);
+
+        // Zapisanie listy studentów do pliku
+        Students::saveStudentsToFile(students);
+
+        wxMessageBox("Student added successfully!", "Success", wxOK | wxICON_INFORMATION);
+
+        
+
+        dlg.EndModal(wxID_OK);
+        }, wxID_OK);
+
     dlg.Bind(wxEVT_BUTTON, [&dlg](wxCommandEvent&) { dlg.EndModal(wxID_CANCEL); }, wxID_CANCEL);
-
-    if (dlg.ShowModal() == wxID_OK) {
-        wxMessageBox(role + " added successfully!", "Success", wxOK | wxICON_INFORMATION);
-    }
-}
-
-void AdminPanel::OnEditUser(wxCommandEvent& event)
-{
-    wxDialog dlg(this, wxID_ANY, "Edit User", wxDefaultPosition, wxSize(500, 400));
-
-    wxNotebook* notebook = new wxNotebook(&dlg, wxID_ANY);
-
-    // Panel edycji studenta
-    wxPanel* studentPanel = new wxPanel(notebook);
-    wxFlexGridSizer* studentSizer = new wxFlexGridSizer(2, 5, 10);
-    studentSizer->AddGrowableCol(1, 1);
-
-    // Panel edycji nauczyciela
-    wxPanel* teacherPanel = new wxPanel(notebook);
-    wxFlexGridSizer* teacherSizer = new wxFlexGridSizer(2, 5, 10);
-    teacherSizer->AddGrowableCol(1, 1);
-
-    // Wspólne pola
-    wxTextCtrl* firstNameCtrl = new wxTextCtrl(studentPanel, wxID_ANY, "John");
-    wxTextCtrl* lastNameCtrl = new wxTextCtrl(studentPanel, wxID_ANY, "Doe");
-    wxTextCtrl* emailCtrl = new wxTextCtrl(studentPanel, wxID_ANY, "john.doe@example.com");
-
-    // Pola specyficzne dla studenta
-    wxTextCtrl* studentIdCtrl = new wxTextCtrl(studentPanel, wxID_ANY, "12345");
-    wxTextCtrl* groupCtrl = new wxTextCtrl(studentPanel, wxID_ANY, "CS-101");
-
-    // Pola specyficzne dla nauczyciela
-    wxTextCtrl* teacherIdCtrl = new wxTextCtrl(teacherPanel, wxID_ANY, "T-456");
-    wxTextCtrl* departmentCtrl = new wxTextCtrl(teacherPanel, wxID_ANY, "Computer Science");
-
-    // Budowanie panelu studenta
-    studentSizer->Add(new wxStaticText(studentPanel, wxID_ANY, "First Name:"));
-    studentSizer->Add(firstNameCtrl, 0, wxEXPAND);
-    studentSizer->Add(new wxStaticText(studentPanel, wxID_ANY, "Last Name:"));
-    studentSizer->Add(lastNameCtrl, 0, wxEXPAND);
-    studentSizer->Add(new wxStaticText(studentPanel, wxID_ANY, "Email:"));
-    studentSizer->Add(emailCtrl, 0, wxEXPAND);
-    studentSizer->Add(new wxStaticText(studentPanel, wxID_ANY, "Student ID:"));
-    studentSizer->Add(studentIdCtrl, 0, wxEXPAND);
-    studentSizer->Add(new wxStaticText(studentPanel, wxID_ANY, "Group:"));
-    studentSizer->Add(groupCtrl, 0, wxEXPAND);
-    studentPanel->SetSizer(studentSizer);
-
-    // Budowanie panelu nauczyciela
-    teacherSizer->Add(new wxStaticText(teacherPanel, wxID_ANY, "First Name:"));
-    teacherSizer->Add(new wxTextCtrl(teacherPanel, wxID_ANY, "Jane"), 0, wxEXPAND);
-    teacherSizer->Add(new wxStaticText(teacherPanel, wxID_ANY, "Last Name:"));
-    teacherSizer->Add(new wxTextCtrl(teacherPanel, wxID_ANY, "Smith"), 0, wxEXPAND);
-    teacherSizer->Add(new wxStaticText(teacherPanel, wxID_ANY, "Email:"));
-    teacherSizer->Add(new wxTextCtrl(teacherPanel, wxID_ANY, "jane.smith@example.com"), 0, wxEXPAND);
-    teacherSizer->Add(new wxStaticText(teacherPanel, wxID_ANY, "Teacher ID:"));
-    teacherSizer->Add(teacherIdCtrl, 0, wxEXPAND);
-    teacherSizer->Add(new wxStaticText(teacherPanel, wxID_ANY, "Department:"));
-    teacherSizer->Add(departmentCtrl, 0, wxEXPAND);
-    teacherPanel->SetSizer(teacherSizer);
-
-    notebook->AddPage(studentPanel, "Student");
-    notebook->AddPage(teacherPanel, "Teacher");
-
-    wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
-    mainSizer->Add(notebook, 1, wxEXPAND);
-
-    wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
-    buttonSizer->Add(new wxButton(&dlg, wxID_OK, "Save"), 0, wxALL, 5);
-    buttonSizer->Add(new wxButton(&dlg, wxID_CANCEL, "Cancel"), 0, wxALL, 5);
-    mainSizer->Add(buttonSizer, 0, wxALIGN_CENTER | wxBOTTOM, 10);
-
-    dlg.SetSizer(mainSizer);
+    
     dlg.ShowModal();
+
+  
 }
+
+
 
 
 

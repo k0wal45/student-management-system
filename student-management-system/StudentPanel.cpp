@@ -2,16 +2,46 @@
 #include "MainFrame.h"
 #include <wx/listctrl.h>
 #include <wx/datectrl.h>
-
-StudentPanel::StudentPanel(wxWindow* parent, const wxString& studentName)
-    : wxPanel(parent), studentName(studentName) 
+#include "Students.h"
+StudentPanel::StudentPanel(wxWindow* parent, const wxString& studentEmail)
+    : wxPanel(parent), studentEmail(studentEmail)
 {
     SetBackgroundColour(wxColour(240, 240, 240));
 
     wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
 
+
+    // Wczytaj dane studentów
+    vector<Students> allStudents = Students::loadStudentsFromFile();
+
+
+    // ZnajdŸ studenta na podstawie adresu e-mail
+
+
+    wxString emailToFind = studentEmail; // Przypisz wartoœæ do zmiennej lokalnej
+    auto it = std::find_if(allStudents.begin(), allStudents.end(), [&emailToFind](const Students& student) {
+        return student.email == emailToFind.ToStdString();
+        });
+
+    wxString headerText;
+    if (it != allStudents.end()) {
+        // Jeœli student zosta³ znaleziony, ustaw imiê i nazwisko w nag³ówku
+        const Students& student = *it;
+        headerText = "Student Panel: " + wxString::FromUTF8(student.first_name + " " + student.last_name);
+    }
+    else {
+        // Jeœli nie znaleziono studenta, przekieruj do panelu logowania
+        wxMessageBox("Student not found: " + studentEmail, "Error", wxOK | wxICON_ERROR);
+        MainFrame* frame = dynamic_cast<MainFrame*>(GetParent());
+        if (frame) {
+            frame->ShowLoginPanel();
+        }
+        return; // Zakoñcz konstruktor, aby nie inicjalizowaæ panelu
+    }
+
     // Nag³ówek
-    wxStaticText* title = new wxStaticText(this, wxID_ANY, "Student Panel: " + studentName, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
+    wxStaticText* title = new wxStaticText(this, wxID_ANY, headerText,
+        wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     title->SetFont(wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
     mainSizer->Add(title, 0, wxALL | wxEXPAND, 10);
 
@@ -22,62 +52,88 @@ StudentPanel::StudentPanel(wxWindow* parent, const wxString& studentName)
     wxPanel* gradesPanel = new wxPanel(notebook);
     wxBoxSizer* gradesSizer = new wxBoxSizer(wxVERTICAL);
 
-    wxListCtrl* gradesList = new wxListCtrl(gradesPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
+    gradesList = new wxListCtrl(gradesPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
     gradesList->AppendColumn("Subject", wxLIST_FORMAT_LEFT, 150);
     gradesList->AppendColumn("Grade", wxLIST_FORMAT_LEFT, 80);
     gradesList->AppendColumn("Date", wxLIST_FORMAT_LEFT, 120);
-    gradesList->AppendColumn("Teacher", wxLIST_FORMAT_LEFT, 150);
+    gradesList->AppendColumn("Comment", wxLIST_FORMAT_LEFT, 150);
 
-    // Przyk³adowe oceny
-    long index = gradesList->InsertItem(0, "Mathematics");
-    gradesList->SetItem(index, 1, "A");
-    gradesList->SetItem(index, 2, "2023-10-15");
-    gradesList->SetItem(index, 3, "John Doe");
-
-    index = gradesList->InsertItem(1, "Physics");
-    gradesList->SetItem(index, 1, "B");
-    gradesList->SetItem(index, 2, "2023-10-16");
-    gradesList->SetItem(index, 3, "Jane Smith");
-
-    gradesSizer->Add(gradesList, 1, wxALL | wxEXPAND, 5);
+    gradesSizer->Add(gradesList, 1, wxALL | wxEXPAND, 10);
     gradesPanel->SetSizer(gradesSizer);
+    notebook->AddPage(gradesPanel, "Grades");
 
     // Zak³adka Sprawdziany
     wxPanel* examsPanel = new wxPanel(notebook);
     wxBoxSizer* examsSizer = new wxBoxSizer(wxVERTICAL);
 
-    wxListCtrl* examsList = new wxListCtrl(examsPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
+    examsList = new wxListCtrl(examsPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
     examsList->AppendColumn("Subject", wxLIST_FORMAT_LEFT, 150);
     examsList->AppendColumn("Date", wxLIST_FORMAT_LEFT, 120);
     examsList->AppendColumn("Description", wxLIST_FORMAT_LEFT, 250);
     examsList->AppendColumn("Teacher", wxLIST_FORMAT_LEFT, 150);
 
-    // Przyk³adowe sprawdziany
-    index = examsList->InsertItem(0, "Mathematics");
-    examsList->SetItem(index, 1, "2023-11-15");
-    examsList->SetItem(index, 2, "Midterm exam - chapters 1-5");
-    examsList->SetItem(index, 3, "John Doe");
-
-    index = examsList->InsertItem(1, "Physics");
-    examsList->SetItem(index, 1, "2023-11-20");
-    examsList->SetItem(index, 2, "Final exam - all chapters");
-    examsList->SetItem(index, 3, "Jane Smith");
-
-    examsSizer->Add(examsList, 1, wxALL | wxEXPAND, 5);
+    examsSizer->Add(examsList, 1, wxALL | wxEXPAND, 10);
     examsPanel->SetSizer(examsSizer);
-
-    notebook->AddPage(gradesPanel, "Grades");
     notebook->AddPage(examsPanel, "Exams");
 
-    mainSizer->Add(notebook, 1, wxALL | wxEXPAND, 5);
+    // Dodaj notebook do g³ównego sizera
+    mainSizer->Add(notebook, 1, wxALL | wxEXPAND, 10);
 
     // Przycisk powrotu
     wxButton* backBtn = new wxButton(this, wxID_ANY, "Back to Login");
     backBtn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
         MainFrame* frame = dynamic_cast<MainFrame*>(GetParent());
-        frame->ShowLoginPanel();
+        if (frame) frame->ShowLoginPanel();
         });
-
     mainSizer->Add(backBtn, 0, wxALL | wxALIGN_RIGHT, 5);
+
     SetSizer(mainSizer);
+    Layout();
+
+    // Za³aduj dane PO pe³nej inicjalizacji interfejsu
+    ShowStudentDetails();
+}
+
+void StudentPanel::ShowStudentDetails()
+{
+    if (!gradesList) return;
+
+    gradesList->Freeze();
+    gradesList->DeleteAllItems();
+
+    try {
+        vector<Students> allStudents = Students::loadStudentsFromFile();
+        vector<Grade> allGrades = Grade::loadGradesFromFile();
+
+        auto it = std::find_if(allStudents.begin(), allStudents.end(), [this](const Students& student) {
+            return (student.email) == studentEmail.ToStdString();
+            });
+
+        if (it != allStudents.end()) {
+            const Students& student = *it;
+
+            for (const auto& gradeId : student.grades) {
+                auto gradeIt = std::find_if(allGrades.begin(), allGrades.end(),
+                    [&gradeId](const Grade& grade) { return grade.id == gradeId; });
+
+                if (gradeIt != allGrades.end()) {
+                    const Grade& grade = *gradeIt;
+                    long index = gradesList->InsertItem(gradesList->GetItemCount(), grade.subject);
+                    gradesList->SetItem(index, 1, wxString::Format("%.2f", grade.grade));
+                    gradesList->SetItem(index, 2, grade.date);
+                    gradesList->SetItem(index, 3, grade.comment);
+                }
+            }
+        }
+        else {
+            wxMessageBox("Student not found: " + studentEmail, "Error", wxOK | wxICON_ERROR);
+        }
+    }
+    catch (const std::exception& e) {
+        wxMessageBox("Error loading student data: " + wxString(e.what()),
+            "Error", wxOK | wxICON_ERROR);
+    }
+
+    gradesList->Thaw();
+    gradesList->Refresh();
 }

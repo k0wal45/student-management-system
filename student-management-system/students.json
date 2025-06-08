@@ -1,25 +1,11 @@
 [
     {
-        "email": "anna.nowak@example.com",
-        "first_name": "Anna",
-        "grades": [
-            "g1",
-            "g2",
-            "g3"
-        ],
-        "group": "2B",
-        "id": "1",
-        "last_name": "Nowak",
-        "major": "Computer Science", 
-        "student_id": "s123456",
-        "year": 2
-    },
-    {
         "email": "jan.kowalski@example.com",
         "first_name": "Jan",
         "grades": [
-            "g4",
-            "g5"
+            "g6",
+            "g11",
+            "g12"
         ],
         "group": "3A",
         "id": "2",
@@ -27,5 +13,27 @@
         "major": "Mathematics",
         "student_id": "s654321",
         "year": 3
+    },
+    {
+        "email": "f@example.com",
+        "first_name": "fff",
+        "grades": [],
+        "group": "",
+        "id": "4",
+        "last_name": "ggg",
+        "major": "aaa",
+        "student_id": "",
+        "year": 3
+    },
+    {
+        "email": "kkan@example.com",
+        "first_name": "Krzysztof",
+        "grades": [],
+        "group": "",
+        "id": "3",
+        "last_name": "Kan",
+        "major": "Mathematics",
+        "student_id": "",
+        "year": 2
     }
 ]

@@ -124,5 +124,8 @@
     <None Include="grades.json">
       <Filter>Database</Filter>
     </None>
+    <None Include="exams.json">
+      <Filter>Database</Filter>
+    </None>
   </ItemGroup>
 </Project>

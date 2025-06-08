@@ -1,37 +1,65 @@
 [
-  {
-    "id": "g1",
-    "grade": 5.0,
-    "subject": "Matematyka",
-    "comment": "Swietna praca na egzaminie",
-    "date": "2023-10-01"
-  },
-  {
-    "id": "g2",
-    "grade": 4.5,
-    "subject": "Fizyka",
-    "comment": "Dobra znajomosc materialu",
-    "date": "2023-10-02"
-  },
-  {
-    "id": "g3",
-    "grade": 3.0,
-    "subject": "Chemia",
-    "comment": "Wymaga poprawy",
-    "date": "2023-10-03"
-  },
-  {
-    "id": "g4",
-    "grade": 5.0,
-    "subject": "Chemia",
-    "comment": "Perfekcyjnie",
-    "date": "2023-03-13"
-  },
-  {
-    "id": "g5",
-    "grade": 2.0,
-    "subject": "Algebra i Logika",
-    "comment": "Wymaga poprawy",
-    "date": "2023-11-03"
-  }
+    {
+        "comment": "jjj",
+        "date": "2025-06-07",
+        "grade": 2.0,
+        "id": "g3",
+        "subject": "Physics"
+    },
+    {
+        "comment": "sss",
+        "date": "2025-06-07",
+        "grade": 4.0,
+        "id": "g4",
+        "subject": "Chemistry"
+    },
+    {
+        "comment": "dddd",
+        "date": "2025-06-07",
+        "grade": 4.5,
+        "id": "g6",
+        "subject": "History"
+    },
+    {
+        "comment": "aaa",
+        "date": "2025-06-07",
+        "grade": 3.0,
+        "id": "g7",
+        "subject": "Biology"
+    },
+    {
+        "comment": "dddddd",
+        "date": "2025-06-07",
+        "grade": 5.0,
+        "id": "g8",
+        "subject": "Maths"
+    },
+    {
+        "comment": "Good boy",
+        "date": "2025-06-07",
+        "grade": 3.0,
+        "id": "g9",
+        "subject": "Maths"
+    },
+    {
+        "comment": "aaaaa",
+        "date": "2025-06-07",
+        "grade": 4.5,
+        "id": "g10",
+        "subject": "History"
+    },
+    {
+        "comment": "aaa",
+        "date": "2025-06-07",
+        "grade": 4.5,
+        "id": "g11",
+        "subject": "Biology"
+    },
+    {
+        "comment": "ddd",
+        "date": "2025-06-07",
+        "grade": 2.0,
+        "id": "g12",
+        "subject": "Chemistry"
+    }
 ]

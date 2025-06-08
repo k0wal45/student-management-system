@@ -4,14 +4,53 @@
 #include <wx/datectrl.h>
 #include <wx/datectrl.h>
 #include <wx/datectrl.h>
-TeacherPanel::TeacherPanel(wxWindow* parent, const wxString& teacherName)
-	: wxPanel(parent), teacherName(teacherName)
+#include "Students.h"
+#include "TeacherPanel.h"
+#include "MainFrame.h"
+#include <wx/listctrl.h>
+#include <wx/datectrl.h>
+#include "Students.h"
+#include "Grade.h"
+#include <set>
+#include <regex>
+
+TeacherPanel::TeacherPanel(wxWindow* parent, const wxString& teacherEmail)
+    : wxPanel(parent), teacherEmail(teacherEmail), notebook(nullptr)
 {
     SetBackgroundColour(wxColour(240, 240, 240));
     wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
     SetSize(800, 600);
+
+
     // Nag³ówek
-    wxStaticText* title = new wxStaticText(this, wxID_ANY, "Teacher Panel: " + teacherName, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
+    // Wczytaj dane studentów
+    vector<Students> allStudents = Students::loadStudentsFromFile();
+
+
+    // ZnajdŸ studenta na podstawie adresu e-mail
+    wxString emailToFind = teacherEmail; // Przypisz wartoœæ do zmiennej lokalnej
+    auto it = std::find_if(allStudents.begin(), allStudents.end(), [&emailToFind](const Students& student) {
+        return student.email == emailToFind.ToStdString();
+        });
+
+    wxString headerText;
+    if (it != allStudents.end()) {
+        // Jeœli student zosta³ znaleziony, ustaw imiê i nazwisko w nag³ówku
+        const Students& student = *it;
+        headerText = "Teacher Panel: " + wxString::FromUTF8(student.first_name + " " + student.last_name);
+    }
+    else {
+        // Jeœli nie znaleziono studenta, przekieruj do panelu logowania
+        wxMessageBox("Teacher not found: " + teacherEmail, "Error", wxOK | wxICON_ERROR);
+        MainFrame* frame = dynamic_cast<MainFrame*>(GetParent());
+        if (frame) {
+            frame->ShowLoginPanel();
+        }
+        return; // Zakoñcz konstruktor, aby nie inicjalizowaæ panelu
+    }
+
+    // Nag³ówek
+    wxStaticText* title = new wxStaticText(this, wxID_ANY, headerText, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     title->SetFont(wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
     mainSizer->Add(title, 0, wxALL | wxEXPAND, 10);
 
@@ -28,32 +67,36 @@ TeacherPanel::TeacherPanel(wxWindow* parent, const wxString& teacherName)
     searchPanel->SetSizer(searchSizer);
 
     // Notebook z zak³adkami
-    wxNotebook* notebook = new wxNotebook(this, wxID_ANY);
+    notebook = new wxNotebook(this, wxID_ANY);
 
     // Zak³adka Studenci
     wxPanel* studentsPanel = new wxPanel(notebook);
     wxBoxSizer* studentsSizer = new wxBoxSizer(wxVERTICAL);
 
-    // Inicjalizacja listy studentów z dodatkowymi parametrami
-    wxListCtrl* studentsList = new wxListCtrl(studentsPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
-    studentsList->AppendColumn("ID", wxLIST_FORMAT_LEFT, 80);
-    studentsList->AppendColumn("Name", wxLIST_FORMAT_LEFT, 150);
+    // Inicjalizacja listy studentów - teraz jako member klasy
+    studentsList = new wxListCtrl(studentsPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
+    studentsList->AppendColumn("ID", wxLIST_FORMAT_LEFT, 50);
+    studentsList->AppendColumn("First Name", wxLIST_FORMAT_LEFT, 100);
+    studentsList->AppendColumn("Last Name", wxLIST_FORMAT_LEFT, 100);
     studentsList->AppendColumn("Email", wxLIST_FORMAT_LEFT, 200);
+    studentsList->AppendColumn("Major", wxLIST_FORMAT_LEFT, 150);
+    studentsList->AppendColumn("Year", wxLIST_FORMAT_LEFT, 50);
 
+    // Wczytanie i wyœwietlenie studentów z pliku JSON
+    vector<Students> students = Students::loadStudentsFromFile();
+    for (const Students& student : students) {
+        long index = studentsList->InsertItem(studentsList->GetItemCount(), student.id);
+        studentsList->SetItem(index, 1, student.first_name);
+        studentsList->SetItem(index, 2, student.last_name);
+        studentsList->SetItem(index, 3, student.email);
+        studentsList->SetItem(index, 4, student.major);
+        studentsList->SetItem(index, 5, wxString::Format("%d", student.year));
+    }
 
-    // Przyk³adowi studenci
-    long index = studentsList->InsertItem(0, "1");
-    studentsList->SetItem(index, 1, "Alice Smith");
-    studentsList->SetItem(index, 2, "alice@example.com");
-
-    index = studentsList->InsertItem(1, "2");
-    studentsList->SetItem(index, 1, "Bob Johnson");
-    studentsList->SetItem(index, 2, "bob@example.com");
-    
     studentsList->SetBackgroundColour(wxColour(255, 255, 255));
     studentsList->SetTextColour(wxColour(0, 0, 0));
     studentsList->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
-    
+
     studentsSizer->Add(studentsList, 1, wxALL | wxEXPAND, 5);
     studentsPanel->SetSizer(studentsSizer);
 
@@ -64,24 +107,44 @@ TeacherPanel::TeacherPanel(wxWindow* parent, const wxString& teacherName)
     wxButton* addGradeBtn = new wxButton(gradesPanel, wxID_ANY, "Add Grade");
     addGradeBtn->Bind(wxEVT_BUTTON, &TeacherPanel::OnAddGrade, this);
 
-    wxListCtrl* gradesList = new wxListCtrl(gradesPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
+    wxButton* removeGradeBtn = new wxButton(gradesPanel, wxID_ANY, "Remove Grade");
+    removeGradeBtn->Bind(wxEVT_BUTTON, &TeacherPanel::OnRemoveGrade, this);
+
+
+    wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL); // Sizer dla przycisków
+    buttonSizer->Add(addGradeBtn, 0, wxALL, 5);
+    buttonSizer->Add(removeGradeBtn, 0, wxALL, 5);
+
+   
+
+    gradesList = new wxListCtrl(gradesPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
+    
     gradesList->AppendColumn("Student", wxLIST_FORMAT_LEFT, 150);
     gradesList->AppendColumn("Subject", wxLIST_FORMAT_LEFT, 150);
     gradesList->AppendColumn("Grade", wxLIST_FORMAT_LEFT, 80);
     gradesList->AppendColumn("Date", wxLIST_FORMAT_LEFT, 120);
+    gradesList->AppendColumn("Comment", wxLIST_FORMAT_LEFT, 200);
+   
 
-    // Przyk³adowe oceny
-    index = gradesList->InsertItem(0, "Alice Smith");
-    gradesList->SetItem(index, 1, "Mathematics");
-    gradesList->SetItem(index, 2, "A");
-    gradesList->SetItem(index, 3, "2023-10-15");
+    // Wczytanie i wyœwietlenie ocen z pliku JSON
+    vector<Grade> allGrades = Grade::loadGradesFromFile();
+    
 
-    index = gradesList->InsertItem(1, "Bob Johnson");
-    gradesList->SetItem(index, 1, "Physics");
-    gradesList->SetItem(index, 2, "B");
-    gradesList->SetItem(index, 3, "2023-10-16");
-
-    gradesSizer->Add(addGradeBtn, 0, wxALL, 5);
+    for (const Grade& grade : allGrades) {
+        // ZnajdŸ studenta, który ma tê ocenê
+        for (const Students& student : allStudents) {
+            if (std::find(student.grades.begin(), student.grades.end(), grade.id) != student.grades.end()) {
+                long index = gradesList->InsertItem(gradesList->GetItemCount(),
+                    student.first_name + " " + student.last_name);
+                gradesList->SetItem(index, 1, grade.subject);
+                gradesList->SetItem(index, 2, wxString::Format("%.1f", grade.grade));
+                gradesList->SetItem(index, 3, grade.date);
+                gradesList->SetItem(index, 4, grade.comment);
+                break;
+            }
+        }
+    }
+    gradesSizer->Add(buttonSizer, 0, wxALIGN_LEFT | wxALL, 5); // Dodanie sizeru przycisków do g³ównego sizeru
     gradesSizer->Add(gradesList, 1, wxALL | wxEXPAND, 5);
     gradesPanel->SetSizer(gradesSizer);
 
@@ -98,7 +161,7 @@ TeacherPanel::TeacherPanel(wxWindow* parent, const wxString& teacherName)
     examsList->AppendColumn("Description", wxLIST_FORMAT_LEFT, 250);
 
     // Przyk³adowe sprawdziany
-    index = examsList->InsertItem(0, "Mathematics");
+    long index = examsList->InsertItem(0, "Mathematics");
     examsList->SetItem(index, 1, "2023-11-15");
     examsList->SetItem(index, 2, "Midterm exam - chapters 1-5");
 
@@ -131,111 +194,373 @@ TeacherPanel::TeacherPanel(wxWindow* parent, const wxString& teacherName)
     
     
 }
+std::string GenerateUniqueGradeId(const std::vector<Grade>& allGrades) {
+    int maxId = 0;
+
+    // Wyszukaj najwiêkszy numer ID w istniej¹cych ocenach
+    std::regex idRegex("^g(\\d+)$");
+    for (const auto& grade : allGrades) {
+        std::smatch match;
+        if (std::regex_match(grade.id, match, idRegex)) {
+            int currentId = std::stoi(match[1].str());
+            maxId = std::max(maxId, currentId);
+        }
+    }
+
+    // Zwróæ nowe ID w formacie "g" + (maxId + 1)
+    return "g" + std::to_string(maxId + 1);
+}
 
 void TeacherPanel::OnSearch(wxCommandEvent& event)
 {
-    //zabezpieczenie przed nullptr
-        if (studentsList && searchCtrl)
-        {
-            FilterStudents(searchCtrl->GetValue());
-        }
-    event.Skip();
+    wxString searchText = searchCtrl->GetValue();
+    int activeTab = notebook->GetSelection();
+
+    if (activeTab == 0) { // Zak³adka Studenci
+        FilterData(searchText, false);
+    }
+    else if (activeTab == 1) { // Zak³adka Oceny
+        FilterData(searchText, true);
+    }
 }
 
 
-void TeacherPanel::FilterStudents(const wxString& searchText)
+void TeacherPanel::FilterData(const wxString& searchText, bool filterGrades)
 {
-    //jakiœ gówno kod tylko do testu
-
-    if (!studentsList) return;
-
     wxBusyCursor busyCursor;
-    studentsList->Freeze();
 
-    try {
-        wxString searchLower = searchText.Lower();
+    if (filterGrades) {
+        if (!gradesList) return;
 
-        for (int i = 0; i < studentsList->GetItemCount(); ++i) {
-            wxString studentName = studentsList->GetItemText(i, 1).Lower();
-            bool match = searchText.empty() || studentName.Contains(searchLower);
-            studentsList->SetItemState(i, match ? 0 : wxLIST_STATE_DONTCARE, wxLIST_STATE_DONTCARE);
+        gradesList->Freeze();
+        gradesList->DeleteAllItems();
+
+        try {
+            vector<Grade> allGrades = Grade::loadGradesFromFile();
+            vector<Students> allStudents = Students::loadStudentsFromFile();
+            wxString searchLower = searchText.Lower();
+
+            for (const Grade& grade : allGrades) {
+                for (const Students& student : allStudents) {
+                    if (std::find(student.grades.begin(), student.grades.end(), grade.id) != student.grades.end()) {
+                        wxString studentName = student.first_name + " " + student.last_name;
+                        wxString subject = grade.subject;
+                        wxString comment = grade.comment;
+
+                        bool match = searchText.IsEmpty() ||
+                            studentName.Lower().Contains(searchLower) ||
+                            subject.Lower().Contains(searchLower) ||
+                            comment.Lower().Contains(searchLower);
+
+                        if (match) {
+                            long index = gradesList->InsertItem(gradesList->GetItemCount(), studentName);
+                            gradesList->SetItem(index, 1, grade.subject);
+                            gradesList->SetItem(index, 2, wxString::Format("%.1f", grade.grade));
+                            gradesList->SetItem(index, 3, grade.date);
+                            gradesList->SetItem(index, 4, grade.comment);
+                        }
+                    }
+                }
+            }
         }
-    }
-    catch (...) {
-        wxLogError("Error during filtering");
-    }
+        catch (const exception& e) {
+            wxLogError("Error during filtering grades: %s", e.what());
+        }
+        catch (...) {
+            wxLogError("Unknown error during filtering grades");
+        }
 
-    studentsList->Thaw();
-    studentsList->Refresh();
+        gradesList->Thaw();
+        gradesList->Refresh();
+    }
+    else {
+        if (!studentsList) return;
+
+        studentsList->Freeze();
+        studentsList->DeleteAllItems();
+
+        try {
+            vector<Students> allStudents = Students::loadStudentsFromFile();
+            wxString searchLower = searchText.Lower();
+
+            for (const Students& student : allStudents) {
+                wxString name = student.first_name;
+                wxString surname = student.last_name;
+
+                bool match = searchText.IsEmpty() ||
+                    name.Lower().Contains(searchLower) ||
+                    surname.Lower().Contains(searchLower);
+
+                if (match) {
+                    long index = studentsList->InsertItem(studentsList->GetItemCount(), student.id);
+                    studentsList->SetItem(index, 1, student.first_name);
+                    studentsList->SetItem(index, 2, student.last_name);
+                    studentsList->SetItem(index, 3, student.email);
+                    studentsList->SetItem(index, 4, student.major);
+                    studentsList->SetItem(index, 5, wxString::Format("%d", student.year));
+                }
+            }
+        }
+        catch (const exception& e) {
+            wxLogError("Error during filtering students: %s", e.what());
+        }
+        catch (...) {
+            wxLogError("Unknown error during filtering students");
+        }
+
+        studentsList->Thaw();
+        studentsList->Refresh();
+    }
 }
 
 void TeacherPanel::OnAddGrade(wxCommandEvent& event)
 {
+    // Wyœwietlenie dialogu do dodania oceny
     ShowAddGradeDialog();
+
+    // Odœwie¿enie listy ocen
+    RefreshGradesList();
 }
 
+
+
+void TeacherPanel::OnRemoveGrade(wxCommandEvent& event)
+{
+    ShowRemoveGradeDialog();
+}
 void TeacherPanel::OnAddExam(wxCommandEvent& event)
 {
     ShowAddExamDialog();
 }
+void TeacherPanel::ShowRemoveGradeDialog() {
+    wxDialog* removeGradeDialog = new wxDialog(this, wxID_ANY, "Remove Grade", wxDefaultPosition, wxSize(1000, 700));
+    wxBoxSizer* dialogSizer = new wxBoxSizer(wxVERTICAL);
 
-void TeacherPanel::ShowAddGradeDialog()
-{
-    wxDialog dlg(this, wxID_ANY, "Add New Grade", wxDefaultPosition, wxSize(500, 600));
+    // Pole wyboru studenta
+    wxStaticText* studentLabel = new wxStaticText(removeGradeDialog, wxID_ANY, "Student:");
+    wxComboBox* studentComboBox = new wxComboBox(removeGradeDialog, wxID_ANY);
+    vector<Students> allStudents = Students::loadStudentsFromFile();
+    for (const Students& student : allStudents) {
+        studentComboBox->Append(student.first_name + " " + student.last_name);
+    }
 
-    wxPanel* panel = new wxPanel(&dlg);
-    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+    // Pole wyboru przedmiotu
+    wxStaticText* subjectLabel = new wxStaticText(removeGradeDialog, wxID_ANY, "Subject:");
+    wxTextCtrl* subjectTextCtrl = new wxTextCtrl(removeGradeDialog, wxID_ANY);
 
-    wxStaticText* title = new wxStaticText(panel, wxID_ANY, "Add New Grade");
-    title->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
+    // Pole oceny
+    wxStaticText* gradeLabel = new wxStaticText(removeGradeDialog, wxID_ANY, "Grade:");
+    wxTextCtrl* gradeTextCtrl = new wxTextCtrl(removeGradeDialog, wxID_ANY);
 
-    wxChoice* studentChoice = new wxChoice(panel, wxID_ANY);
-    studentChoice->Append("Alice Smith");
-    studentChoice->Append("Bob Johnson");
-    studentChoice->SetSelection(0);
+    // Przyciski
+    wxButton* removeButton = new wxButton(removeGradeDialog, wxID_OK, "Remove");
+    wxButton* cancelButton = new wxButton(removeGradeDialog, wxID_CANCEL, "Cancel");
 
-    wxTextCtrl* subjectCtrl = new wxTextCtrl(panel, wxID_ANY);
-    wxChoice* gradeChoice = new wxChoice(panel, wxID_ANY);
-    gradeChoice->Append("A");
-    gradeChoice->Append("B");
-    gradeChoice->Append("C");
-    gradeChoice->Append("D");
-    gradeChoice->Append("F");
-    gradeChoice->SetSelection(0);
+    // Uk³ad elementów w dialogu
+    wxBoxSizer* studentSizer = new wxBoxSizer(wxVERTICAL);
+    studentSizer->Add(studentLabel, 0, wxRIGHT, 5);
+    studentSizer->Add(studentComboBox, 1, wxEXPAND);
 
-    wxDatePickerCtrl* dateCtrl = new wxDatePickerCtrl(panel, wxID_ANY);
+    wxBoxSizer* subjectSizer = new wxBoxSizer(wxVERTICAL);
+    subjectSizer->Add(subjectLabel, 0, wxRIGHT, 5);
+    subjectSizer->Add(subjectTextCtrl, 1, wxEXPAND);
 
-    wxFlexGridSizer* inputSizer = new wxFlexGridSizer(2, 5, 10);
-    inputSizer->Add(new wxStaticText(panel, wxID_ANY, "Student:"));
-    inputSizer->Add(studentChoice);
-    inputSizer->Add(new wxStaticText(panel, wxID_ANY, "Subject:"));
-    inputSizer->Add(subjectCtrl);
-    inputSizer->Add(new wxStaticText(panel, wxID_ANY, "Grade:"));
-    inputSizer->Add(gradeChoice);
-    inputSizer->Add(new wxStaticText(panel, wxID_ANY, "Date:"));
-    inputSizer->Add(dateCtrl);
-
-    wxButton* addBtn = new wxButton(panel, wxID_OK, "Add");
-    wxButton* cancelBtn = new wxButton(panel, wxID_CANCEL, "Cancel");
+    wxBoxSizer* gradeSizer = new wxBoxSizer(wxVERTICAL);
+    gradeSizer->Add(gradeLabel, 0, wxRIGHT, 5);
+    gradeSizer->Add(gradeTextCtrl, 1, wxEXPAND);
 
     wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
-    buttonSizer->Add(addBtn, 0, wxALL, 10);
-    buttonSizer->Add(cancelBtn, 0, wxALL, 10);
+    buttonSizer->Add(removeButton, 0, wxRIGHT, 5);
+    buttonSizer->Add(cancelButton, 0, wxLEFT, 5);
 
-    sizer->Add(title, 0, wxALL | wxALIGN_CENTER, 20);
-    sizer->Add(inputSizer, 0, wxALL | wxALIGN_CENTER, 20);
-    sizer->Add(buttonSizer, 0, wxALL | wxALIGN_CENTER, 20);
+    dialogSizer->Add(studentSizer, 0, wxALL | wxEXPAND, 10);
+    dialogSizer->Add(subjectSizer, 0, wxALL | wxEXPAND, 10);
+    dialogSizer->Add(gradeSizer, 0, wxALL | wxEXPAND, 10);
+    dialogSizer->Add(buttonSizer, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, 10);
 
-    panel->SetSizer(sizer);
+    removeGradeDialog->SetSizer(dialogSizer);
+    dialogSizer->Fit(removeGradeDialog);
 
-    dlg.Bind(wxEVT_BUTTON, [&dlg](wxCommandEvent&) { dlg.EndModal(wxID_OK); }, wxID_OK);
-    dlg.Bind(wxEVT_BUTTON, [&dlg](wxCommandEvent&) { dlg.EndModal(wxID_CANCEL); }, wxID_CANCEL);
+    if (removeGradeDialog->ShowModal() == wxID_OK) {
+        // Pobierz dane z pól
+        wxString studentName = studentComboBox->GetValue();
+        wxString subject = subjectTextCtrl->GetValue();
+        double grade = wxAtof(gradeTextCtrl->GetValue());
 
-    if (dlg.ShowModal() == wxID_OK) {
-        wxMessageBox("Grade added successfully!", "Success", wxOK | wxICON_INFORMATION);
+        // Usuñ ocenê od odpowiedniego studenta
+        for (Students& student : allStudents) {
+            if (studentName == student.first_name + " " + student.last_name) {
+                vector<string>& studentGrades = student.grades;
+                vector<Grade> allGrades = Grade::loadGradesFromFile();
+
+                auto it = std::find_if(allGrades.begin(), allGrades.end(), [&](const Grade& g) {
+                    return g.subject == subject.ToStdString() && g.grade == grade;
+                    });
+
+                if (it != allGrades.end()) {
+                    student.removeGrade(it->id);
+                    allGrades.erase(it);
+
+                    // Zapisz zaktualizowan¹ listê ocen
+                    Grade::saveGradesToFile(allGrades);
+
+                    // Zapisz zaktualizowan¹ listê studentów
+                    Students::saveStudentsToFile(allStudents);
+
+                    // Odœwie¿ listê ocen
+                    RefreshGradesList();
+                    wxMessageBox("Grade removed successfully!", "Success", wxOK | wxICON_INFORMATION);
+                }
+                else {
+                    wxMessageBox("Grade not found!", "Error", wxOK | wxICON_ERROR);
+                }
+                break;
+            }
+        }
     }
+
+    removeGradeDialog->Destroy();
+}
+void TeacherPanel::ShowAddGradeDialog()
+{
+    wxDialog* addGradeDialog = new wxDialog(this, wxID_ANY, "Add Grade", wxDefaultPosition, wxSize(1000, 700));
+    wxBoxSizer* dialogSizer = new wxBoxSizer(wxVERTICAL);
+
+    // Pole wyboru studenta
+    wxStaticText* studentLabel = new wxStaticText(addGradeDialog, wxID_ANY, "Student:");
+    wxComboBox* studentComboBox = new wxComboBox(addGradeDialog, wxID_ANY);
+    vector<Students> allStudents = Students::loadStudentsFromFile();
+    for (const Students& student : allStudents) {
+        studentComboBox->Append(student.first_name + " " + student.last_name);
+    }
+
+    // Pole wyboru przedmiotu
+    wxStaticText* subjectLabel = new wxStaticText(addGradeDialog, wxID_ANY, "Subject:");
+    wxComboBox* subjectComboBox = new wxComboBox(addGradeDialog, wxID_ANY);
+    vector<Grade> allGrades = Grade::loadGradesFromFile();
+    set<string> subjects; // U¿ywamy `set`, aby unikn¹æ duplikatów
+    for (const Grade& grade : allGrades) {
+        subjects.insert(grade.subject);
+    }
+    for (const string& subject : subjects) {
+        subjectComboBox->Append(subject);
+    }
+
+    // Label i lista rozwijalna dla wyboru oceny
+    wxStaticText* gradeLabel = new wxStaticText(addGradeDialog, wxID_ANY, "Grade:");
+    wxComboBox* gradeComboBox = new wxComboBox(addGradeDialog, wxID_ANY);
+    set<double> grades; // U¿ywamy `set`, aby unikn¹æ duplikatów
+    for (const Grade& grade : allGrades) {
+        grades.insert(grade.grade);
+    }
+    for (double gradeValue : grades) {
+        gradeComboBox->Append(wxString::Format("%.1f", gradeValue));
+    }
+
+    // Pole komentarza
+    wxStaticText* commentLabel = new wxStaticText(addGradeDialog, wxID_ANY, "Comment:");
+    wxTextCtrl* commentTextCtrl = new wxTextCtrl(addGradeDialog, wxID_ANY);
+
+    // Przyciski
+    wxButton* saveButton = new wxButton(addGradeDialog, wxID_OK, "Save");
+    wxButton* cancelButton = new wxButton(addGradeDialog, wxID_CANCEL, "Cancel");
+
+    // Uk³ad elementów w dialogu
+   // Uk³ad elementów w dialogu
+    wxBoxSizer* studentSizer = new wxBoxSizer(wxVERTICAL);
+    studentSizer->Add(studentLabel, 0, wxCENTER, 10); // Zwiêkszenie marginesu
+    studentSizer->Add(studentComboBox, 1, wxEXPAND);
+
+    wxBoxSizer* subjectSizer = new wxBoxSizer(wxVERTICAL);
+    subjectSizer->Add(subjectLabel, 0, wxCENTER, 10); // Zwiêkszenie marginesu
+    subjectSizer->Add(subjectComboBox, 1, wxEXPAND);
+
+    wxBoxSizer* gradeSizer = new wxBoxSizer(wxVERTICAL);
+    gradeSizer->Add(gradeLabel, 0, wxCENTER, 10); // Zwiêkszenie marginesu
+    gradeSizer->Add(gradeComboBox, 1, wxEXPAND);
+
+    wxBoxSizer* commentSizer = new wxBoxSizer(wxVERTICAL);
+    commentSizer->Add(commentLabel, 0, wxCENTER, 10); // Zwiêkszenie marginesu
+    commentSizer->Add(commentTextCtrl, 1, wxEXPAND);
+
+    wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
+    buttonSizer->Add(saveButton, 0, wxRIGHT, 10); // Zwiêkszenie marginesu
+    buttonSizer->Add(cancelButton, 0, wxLEFT, 10);
+
+    dialogSizer->Add(studentSizer, 0, wxALL | wxEXPAND, 10); // Zwiêkszenie marginesów
+    dialogSizer->Add(subjectSizer, 0, wxALL | wxEXPAND, 10);
+    dialogSizer->Add(gradeSizer, 0, wxALL | wxEXPAND, 10);
+    dialogSizer->Add(commentSizer, 0, wxALL | wxEXPAND, 10);
+    dialogSizer->Add(buttonSizer, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, 10);
+
+    addGradeDialog->SetSizer(dialogSizer);
+    dialogSizer->Fit(addGradeDialog);
+    if (addGradeDialog->ShowModal() == wxID_OK) {
+        // Pobierz dane z pól
+        wxString studentName = studentComboBox->GetValue();
+        wxString subject = subjectComboBox->GetValue();
+        double grade = wxAtof(gradeComboBox->GetValue());
+        wxString comment = commentTextCtrl->GetValue();
+        // Dodaj ocenê do odpowiedniego studenta
+        for (Students& student : allStudents) {
+            if (studentName == student.first_name + " " + student.last_name) {
+                string newGradeId = GenerateUniqueGradeId(allGrades);
+                Grade newGrade(newGradeId, grade, subject.ToStdString(), comment.ToStdString(), wxDateTime::Now().FormatISODate().ToStdString());
+                student.addGrade(newGrade.id);
+
+
+
+                student.grades.push_back(newGradeId);
+
+                // Dodaj ocenê do listy wszystkich ocen
+                allGrades.push_back(newGrade);
+
+                // Zapisz zmiany do plików
+                Grade::saveGradesToFile(allGrades);
+                Students::saveStudentsToFile(allStudents);
+
+                break;
+            }
+        }
+
+
+        // Odœwie¿ listê ocen
+        RefreshGradesList();
+        wxMessageBox("Grade added successfully!", "Success", wxOK | wxICON_INFORMATION);
+
+    }
+
+    addGradeDialog->Destroy();
 }
 
+void TeacherPanel::RefreshGradesList()
+{
+
+    if (!gradesList) return;
+
+    gradesList->Freeze();
+    gradesList->DeleteAllItems();
+
+    vector<Grade> allGrades = Grade::loadGradesFromFile();
+    vector<Students> allStudents = Students::loadStudentsFromFile();
+
+    for (const Grade& grade : allGrades) {
+        for (const Students& student : allStudents) {
+            if (std::find(student.grades.begin(), student.grades.end(), grade.id) != student.grades.end()) {
+                long index = gradesList->InsertItem(gradesList->GetItemCount(),
+                    student.first_name + " " + student.last_name);
+                gradesList->SetItem(index, 1, grade.subject);
+                gradesList->SetItem(index, 2, wxString::Format("%.1f", grade.grade));
+                gradesList->SetItem(index, 3, grade.date);
+                gradesList->SetItem(index, 4, grade.comment);
+                break;
+            }
+        }
+    }
+
+    gradesList->Thaw();
+    gradesList->Refresh();
+}
 void TeacherPanel::ShowAddExamDialog()
 {
     wxDialog dlg(this, wxID_ANY, "Add New Exam", wxDefaultPosition, wxSize(400, 300));
