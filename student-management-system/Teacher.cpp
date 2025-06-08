@@ -255,14 +255,31 @@ void Teacher::removeTeacher(const string& teacher_id) {
         });
 
     if (it != teachers.end()) {
+        // Pobranie listy egzaminów powi¹zanych z nauczycielem
+        vector<string> examsToRemove = it->exams;
+
+        // Usuniêcie nauczyciela z listy
         teachers.erase(it, teachers.end());
         saveTeachersToFile(teachers);
-        cout << "Usuniêto nauczyciela o ID: " << teacher_id << endl;
+
+        // Wczytanie listy egzaminów z pliku
+        vector<Exam> exams = Exam::loadExamsFromFile();
+
+        // Usuniêcie egzaminów powi¹zanych z nauczycielem
+        exams.erase(remove_if(exams.begin(), exams.end(), [&examsToRemove](const Exam& exam) {
+            return find(examsToRemove.begin(), examsToRemove.end(), exam.id) != examsToRemove.end();
+            }), exams.end());
+
+        // Zapisanie zaktualizowanej listy egzaminów do pliku
+        Exam::saveExamsToFile(exams);
+
+        cout << "Usuniêto nauczyciela o ID: " << teacher_id << " oraz powi¹zane z nim egzaminy." << endl;
     }
     else {
         cerr << "Nie znaleziono nauczyciela o ID: " << teacher_id << endl;
     }
 }
+
 
 // Pobranie nauczyciela po ID
 Teacher Teacher::getTeacherById(const string& teacher_id) {
