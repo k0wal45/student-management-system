@@ -66,6 +66,12 @@
     <ClCompile Include="auth.cpp">
       <Filter>lib</Filter>
     </ClCompile>
+    <ClCompile Include="Exam.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="Teacher.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainApp.h">
@@ -113,6 +119,12 @@
     <ClInclude Include="auth.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
+    <ClInclude Include="Exam.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="Teacher.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="students.json">
@@ -125,6 +137,9 @@
       <Filter>Database</Filter>
     </None>
     <None Include="exams.json">
+      <Filter>Database</Filter>
+    </None>
+    <None Include="teachers.json">
       <Filter>Database</Filter>
     </None>
   </ItemGroup>

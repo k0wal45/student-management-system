@@ -3,63 +3,49 @@
         "comment": "jjj",
         "date": "2025-06-07",
         "grade": 2.0,
-        "id": "g3",
+        "id": "g1",
         "subject": "Physics"
     },
     {
         "comment": "sss",
         "date": "2025-06-07",
         "grade": 4.0,
-        "id": "g4",
+        "id": "g2",
         "subject": "Chemistry"
     },
     {
         "comment": "dddd",
         "date": "2025-06-07",
         "grade": 4.5,
+        "id": "g3",
+        "subject": "History"
+    },
+    {
+        "comment": "aaa",
+        "date": "2025-06-07",
+        "grade": 3.0,
         "id": "g6",
-        "subject": "History"
+        "subject": "Biology"
     },
     {
-        "comment": "aaa",
-        "date": "2025-06-07",
-        "grade": 3.0,
+        "comment": "ccc",
+        "date": "2025-06-08",
+        "grade": 4.0,
         "id": "g7",
-        "subject": "Biology"
-    },
-    {
-        "comment": "dddddd",
-        "date": "2025-06-07",
-        "grade": 5.0,
-        "id": "g8",
-        "subject": "Maths"
-    },
-    {
-        "comment": "Good boy",
-        "date": "2025-06-07",
-        "grade": 3.0,
-        "id": "g9",
-        "subject": "Maths"
-    },
-    {
-        "comment": "aaaaa",
-        "date": "2025-06-07",
-        "grade": 4.5,
-        "id": "g10",
-        "subject": "History"
-    },
-    {
-        "comment": "aaa",
-        "date": "2025-06-07",
-        "grade": 4.5,
-        "id": "g11",
-        "subject": "Biology"
-    },
-    {
-        "comment": "ddd",
-        "date": "2025-06-07",
-        "grade": 2.0,
-        "id": "g12",
         "subject": "Chemistry"
-    }
+    },
+  {
+    "comment": "aaa",
+    "date": "2025-06-08",
+    "grade": 2.0,
+    "id": "g8",
+    "subject": "Chemistry"
+  },
+  {
+    "comment": "aaa",
+    "date": "2025-06-08",
+    "grade": 5.0,
+    "id": "g9",
+    "subject": "Biology"
+  }
 ]

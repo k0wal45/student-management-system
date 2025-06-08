@@ -13,7 +13,7 @@
 #include "Grade.h"
 #include <set>
 #include <regex>
-
+#include "Teacher.h"
 TeacherPanel::TeacherPanel(wxWindow* parent, const wxString& teacherEmail)
     : wxPanel(parent), teacherEmail(teacherEmail), notebook(nullptr)
 {
@@ -22,25 +22,23 @@ TeacherPanel::TeacherPanel(wxWindow* parent, const wxString& teacherEmail)
     SetSize(800, 600);
 
 
-    // Nag³ówek
-    // Wczytaj dane studentów
-    vector<Students> allStudents = Students::loadStudentsFromFile();
+    // Wczytaj dane nauczycieli
+    vector<Teacher> teachers = Teacher::loadTeachersFromFile();
 
-
-    // ZnajdŸ studenta na podstawie adresu e-mail
+    // ZnajdŸ nauczyciela na podstawie adresu e-mail
     wxString emailToFind = teacherEmail; // Przypisz wartoœæ do zmiennej lokalnej
-    auto it = std::find_if(allStudents.begin(), allStudents.end(), [&emailToFind](const Students& student) {
-        return student.email == emailToFind.ToStdString();
+    auto it = std::find_if(teachers.begin(), teachers.end(), [&emailToFind](const Teacher& teacher) {
+        return teacher.email == emailToFind.ToStdString();
         });
 
     wxString headerText;
-    if (it != allStudents.end()) {
-        // Jeœli student zosta³ znaleziony, ustaw imiê i nazwisko w nag³ówku
-        const Students& student = *it;
-        headerText = "Teacher Panel: " + wxString::FromUTF8(student.first_name + " " + student.last_name);
+    if (it != teachers.end()) {
+        // Jeœli nauczyciel zosta³ znaleziony, ustaw imiê i nazwisko w nag³ówku
+        const Teacher& teacher = *it;
+        headerText = "Teacher Panel: " + wxString::FromUTF8(teacher.first_name + " " + teacher.last_name);
     }
     else {
-        // Jeœli nie znaleziono studenta, przekieruj do panelu logowania
+        // Jeœli nie znaleziono nauczyciela, przekieruj do panelu logowania
         wxMessageBox("Teacher not found: " + teacherEmail, "Error", wxOK | wxICON_ERROR);
         MainFrame* frame = dynamic_cast<MainFrame*>(GetParent());
         if (frame) {
@@ -129,18 +127,24 @@ TeacherPanel::TeacherPanel(wxWindow* parent, const wxString& teacherEmail)
     // Wczytanie i wyœwietlenie ocen z pliku JSON
     vector<Grade> allGrades = Grade::loadGradesFromFile();
     
+    vector<Students> allStudents = Students::loadStudentsFromFile();
+    // Pobierz listê ocen aktualnie zalogowanego nauczyciela
+    vector<string> teacherGrades = it->grades; // 'it' to iterator znalezionego nauczyciela
 
     for (const Grade& grade : allGrades) {
-        // ZnajdŸ studenta, który ma tê ocenê
-        for (const Students& student : allStudents) {
-            if (std::find(student.grades.begin(), student.grades.end(), grade.id) != student.grades.end()) {
-                long index = gradesList->InsertItem(gradesList->GetItemCount(),
-                    student.first_name + " " + student.last_name);
-                gradesList->SetItem(index, 1, grade.subject);
-                gradesList->SetItem(index, 2, wxString::Format("%.1f", grade.grade));
-                gradesList->SetItem(index, 3, grade.date);
-                gradesList->SetItem(index, 4, grade.comment);
-                break;
+        // SprawdŸ, czy ocena nale¿y do aktualnie zalogowanego nauczyciela
+        if (std::find(teacherGrades.begin(), teacherGrades.end(), grade.id) != teacherGrades.end()) {
+            // ZnajdŸ studenta, który ma tê ocenê
+            for (const Students& student : allStudents) {
+                if (std::find(student.grades.begin(), student.grades.end(), grade.id) != student.grades.end()) {
+                    long index = gradesList->InsertItem(gradesList->GetItemCount(),
+                        student.first_name + " " + student.last_name);
+                    gradesList->SetItem(index, 1, grade.subject);
+                    gradesList->SetItem(index, 2, wxString::Format("%.1f", grade.grade));
+                    gradesList->SetItem(index, 3, grade.date);
+                    gradesList->SetItem(index, 4, grade.comment);
+                    break;
+                }
             }
         }
     }
@@ -154,22 +158,18 @@ TeacherPanel::TeacherPanel(wxWindow* parent, const wxString& teacherEmail)
 
     wxButton* addExamBtn = new wxButton(examsPanel, wxID_ANY, "Add Exam");
     addExamBtn->Bind(wxEVT_BUTTON, &TeacherPanel::OnAddExam, this);
+    wxButton* removeExamBtn = new wxButton(examsPanel, wxID_ANY, "Remove Exam");
+    removeExamBtn->Bind(wxEVT_BUTTON, &TeacherPanel::OnRemoveExam, this);
 
-    wxListCtrl* examsList = new wxListCtrl(examsPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
+    examsList = new wxListCtrl(examsPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
     examsList->AppendColumn("Subject", wxLIST_FORMAT_LEFT, 150);
     examsList->AppendColumn("Date", wxLIST_FORMAT_LEFT, 120);
     examsList->AppendColumn("Description", wxLIST_FORMAT_LEFT, 250);
 
-    // Przyk³adowe sprawdziany
-    long index = examsList->InsertItem(0, "Mathematics");
-    examsList->SetItem(index, 1, "2023-11-15");
-    examsList->SetItem(index, 2, "Midterm exam - chapters 1-5");
-
-    index = examsList->InsertItem(1, "Physics");
-    examsList->SetItem(index, 1, "2023-11-20");
-    examsList->SetItem(index, 2, "Final exam - all chapters");
+    RefreshExamsList();
 
     examsSizer->Add(addExamBtn, 0, wxALL, 5);
+    examsSizer->Add(removeExamBtn, 0, wxALL, 5);
     examsSizer->Add(examsList, 1, wxALL | wxEXPAND, 5);
     examsPanel->SetSizer(examsSizer);
 
@@ -194,6 +194,57 @@ TeacherPanel::TeacherPanel(wxWindow* parent, const wxString& teacherEmail)
     
     
 }
+void TeacherPanel::OnRemoveExam(wxCommandEvent& event)
+{
+    long selectedItem = examsList->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    if (selectedItem == -1) {
+        wxMessageBox("Please select an exam to remove.", "Error", wxOK | wxICON_ERROR);
+        return;
+    }
+
+    wxString subject = examsList->GetItemText(selectedItem, 0);
+    wxString date = examsList->GetItemText(selectedItem, 1);
+
+    // Wczytaj wszystkie egzaminy
+    vector<Exam> allExams = Exam::loadExamsFromFile();
+
+    // ZnajdŸ egzamin do usuniêcia
+    auto it = std::find_if(allExams.begin(), allExams.end(), [&](const Exam& exam) {
+        return wxString::FromUTF8(exam.subject) == subject && wxString::FromUTF8(exam.date) == date;
+        });
+
+    if (it != allExams.end()) {
+        // Usuñ egzamin z listy egzaminów nauczyciela
+        vector<Teacher> allTeachers = Teacher::loadTeachersFromFile();
+        auto teacherIt = std::find_if(allTeachers.begin(), allTeachers.end(), [&](const Teacher& teacher) {
+            return teacher.email == teacherEmail.ToStdString();
+            });
+
+        if (teacherIt != allTeachers.end()) {
+            Teacher& teacher = *teacherIt;
+            auto examIdIt = std::find(teacher.exams.begin(), teacher.exams.end(), it->id);
+            if (examIdIt != teacher.exams.end()) {
+                teacher.exams.erase(examIdIt);
+            }
+
+            // Zapisz zaktualizowan¹ listê nauczycieli
+            Teacher::saveTeachersToFile(allTeachers);
+        }
+
+        // Usuñ egzamin z pliku
+        Exam::removeExam(it->id);
+
+        RefreshExamsList();
+
+        wxMessageBox("Exam removed successfully.", "Success", wxOK | wxICON_INFORMATION);
+    }
+    else {
+        wxMessageBox("Exam not found.", "Error", wxOK | wxICON_ERROR);
+    }
+}
+
+
+
 std::string GenerateUniqueGradeId(const std::vector<Grade>& allGrades) {
     int maxId = 0;
 
@@ -210,6 +261,26 @@ std::string GenerateUniqueGradeId(const std::vector<Grade>& allGrades) {
     // Zwróæ nowe ID w formacie "g" + (maxId + 1)
     return "g" + std::to_string(maxId + 1);
 }
+
+
+std::string GenerateUniqueExamId(const std::vector<Exam>& allExams) {
+    int maxId = 0;
+
+    // Wyszukaj najwiêkszy numer ID w istniej¹cych egzaminach
+    std::regex idRegex("^e(\\d+)$");
+    for (const auto& exam : allExams) {
+        std::smatch match;
+        if (std::regex_match(exam.id, match, idRegex)) {
+            int currentId = std::stoi(match[1].str());
+            maxId = std::max(maxId, currentId);
+        }
+    }
+
+    // Zwróæ nowe ID w formacie "e" + (maxId + 1)
+    return "e" + std::to_string(maxId + 1);
+}
+
+
 
 void TeacherPanel::OnSearch(wxCommandEvent& event)
 {
@@ -323,7 +394,46 @@ void TeacherPanel::OnAddGrade(wxCommandEvent& event)
 }
 
 
+void TeacherPanel::RefreshExamsList() {
+    // Wczytaj listê nauczycieli z pliku
+    vector<Teacher> teachers = Teacher::loadTeachersFromFile();
 
+    // ZnajdŸ zalogowanego nauczyciela na podstawie adresu e-mail
+    auto it = std::find_if(teachers.begin(), teachers.end(), [this](const Teacher& teacher) {
+        return teacher.email == teacherEmail.ToStdString();
+        });
+
+    if (it == teachers.end()) {
+        wxMessageBox("Logged-in teacher not found.", "Error", wxOK | wxICON_ERROR);
+        return;
+    }
+
+    const Teacher& loggedTeacher = *it;
+
+    // Wczytaj listê egzaminów z pliku
+    vector<Exam> allExams = Exam::loadExamsFromFile();
+
+    // Wyczyœæ listê egzaminów
+    examsList->Freeze();
+    examsList->DeleteAllItems();
+
+    // Wyœwietl egzaminy utworzone przez zalogowanego nauczyciela
+    for (const string& examId : loggedTeacher.exams) {
+        auto examIt = std::find_if(allExams.begin(), allExams.end(), [&examId](const Exam& exam) {
+            return exam.id == examId;
+            });
+
+        if (examIt != allExams.end()) {
+            const Exam& exam = *examIt;
+
+            long index = examsList->InsertItem(examsList->GetItemCount(), exam.subject);
+            examsList->SetItem(index, 1, exam.date);
+            examsList->SetItem(index, 2, exam.comment);
+        }
+    }
+
+    examsList->Thaw();
+}
 void TeacherPanel::OnRemoveGrade(wxCommandEvent& event)
 {
     ShowRemoveGradeDialog();
@@ -331,6 +441,8 @@ void TeacherPanel::OnRemoveGrade(wxCommandEvent& event)
 void TeacherPanel::OnAddExam(wxCommandEvent& event)
 {
     ShowAddExamDialog();
+
+    RefreshExamsList();
 }
 void TeacherPanel::ShowRemoveGradeDialog() {
     wxDialog* removeGradeDialog = new wxDialog(this, wxID_ANY, "Remove Grade", wxDefaultPosition, wxSize(1000, 700));
@@ -501,10 +613,12 @@ void TeacherPanel::ShowAddGradeDialog()
         wxString subject = subjectComboBox->GetValue();
         double grade = wxAtof(gradeComboBox->GetValue());
         wxString comment = commentTextCtrl->GetValue();
+        vector<Teacher> teachers = Teacher::loadTeachersFromFile();
+        string newGradeId = GenerateUniqueGradeId(allGrades);
         // Dodaj ocenê do odpowiedniego studenta
         for (Students& student : allStudents) {
             if (studentName == student.first_name + " " + student.last_name) {
-                string newGradeId = GenerateUniqueGradeId(allGrades);
+               
                 Grade newGrade(newGradeId, grade, subject.ToStdString(), comment.ToStdString(), wxDateTime::Now().FormatISODate().ToStdString());
                 student.addGrade(newGrade.id);
 
@@ -522,7 +636,15 @@ void TeacherPanel::ShowAddGradeDialog()
                 break;
             }
         }
-
+        for (Teacher& teacher : teachers) {
+            if (teacher.email == teacherEmail.ToStdString()) {
+                // Dodaj ID oceny do listy ocen nauczyciela
+                teacher.grades.push_back(newGradeId);
+                // Zapisz zaktualizowan¹ listê nauczycieli do pliku
+                Teacher::saveTeachersToFile(teachers);
+                break;
+            }
+        }
 
         // Odœwie¿ listê ocen
         RefreshGradesList();
@@ -536,30 +658,47 @@ void TeacherPanel::ShowAddGradeDialog()
 void TeacherPanel::RefreshGradesList()
 {
 
-    if (!gradesList) return;
+    vector<Teacher> teachers = Teacher::loadTeachersFromFile();
 
-    gradesList->Freeze();
-    gradesList->DeleteAllItems();
+    // ZnajdŸ zalogowanego nauczyciela na podstawie adresu e-mail
+    for (const Teacher& teacher : teachers) {
+        if (teacher.email == teacherEmail.ToStdString()) {
+            // Wyczyœæ listê ocen
+            gradesList->Freeze();
+            gradesList->DeleteAllItems();
 
-    vector<Grade> allGrades = Grade::loadGradesFromFile();
-    vector<Students> allStudents = Students::loadStudentsFromFile();
+            // Wczytaj wszystkie oceny z pliku
+            vector<Grade> allGrades = Grade::loadGradesFromFile();
+            vector<Students> allStudents = Students::loadStudentsFromFile();
 
-    for (const Grade& grade : allGrades) {
-        for (const Students& student : allStudents) {
-            if (std::find(student.grades.begin(), student.grades.end(), grade.id) != student.grades.end()) {
-                long index = gradesList->InsertItem(gradesList->GetItemCount(),
-                    student.first_name + " " + student.last_name);
-                gradesList->SetItem(index, 1, grade.subject);
-                gradesList->SetItem(index, 2, wxString::Format("%.1f", grade.grade));
-                gradesList->SetItem(index, 3, grade.date);
-                gradesList->SetItem(index, 4, grade.comment);
-                break;
+            // Wyœwietl oceny wystawione przez zalogowanego nauczyciela
+            for (const string& gradeId : teacher.grades) {
+                auto it = std::find_if(allGrades.begin(), allGrades.end(), [&gradeId](const Grade& grade) {
+                    return grade.id == gradeId;
+                    });
+
+                if (it != allGrades.end()) {
+                    const Grade& grade = *it;
+
+                    // ZnajdŸ studenta, który ma tê ocenê
+                    for (const Students& student : allStudents) {
+                        if (std::find(student.grades.begin(), student.grades.end(), grade.id) != student.grades.end()) {
+                            long index = gradesList->InsertItem(gradesList->GetItemCount(),
+                                student.first_name + " " + student.last_name);
+                            gradesList->SetItem(index, 1, grade.subject);
+                            gradesList->SetItem(index, 2, wxString::Format("%.1f", grade.grade));
+                            gradesList->SetItem(index, 3, grade.date);
+                            gradesList->SetItem(index, 4, grade.comment);
+                            break;
+                        }
+                    }
+                }
             }
+
+            gradesList->Thaw();
+            break; // Przerwij pêtlê, gdy znajdziesz zalogowanego nauczyciela
         }
     }
-
-    gradesList->Thaw();
-    gradesList->Refresh();
 }
 void TeacherPanel::ShowAddExamDialog()
 {
@@ -571,13 +710,20 @@ void TeacherPanel::ShowAddExamDialog()
     wxStaticText* title = new wxStaticText(panel, wxID_ANY, "Add New Exam");
     title->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
 
-    wxTextCtrl* subjectCtrl = new wxTextCtrl(panel, wxID_ANY);
+    // Lista rozwijalna dla przedmiotów
+    std::vector<std::string> subjects = { "Math", "Physics", "Chemistry", "Biology", "History" };
+    wxArrayString wxSubjects;
+    for (const auto& subject : subjects) {
+        wxSubjects.Add(subject);
+    }
+    wxChoice* subjectChoice = new wxChoice(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSubjects);
+
     wxDatePickerCtrl* dateCtrl = new wxDatePickerCtrl(panel, wxID_ANY);
     wxTextCtrl* descriptionCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
 
     wxFlexGridSizer* inputSizer = new wxFlexGridSizer(2, 5, 10);
     inputSizer->Add(new wxStaticText(panel, wxID_ANY, "Subject:"));
-    inputSizer->Add(subjectCtrl);
+    inputSizer->Add(subjectChoice);
     inputSizer->Add(new wxStaticText(panel, wxID_ANY, "Date:"));
     inputSizer->Add(dateCtrl);
     inputSizer->Add(new wxStaticText(panel, wxID_ANY, "Description:"));
@@ -595,12 +741,55 @@ void TeacherPanel::ShowAddExamDialog()
     sizer->Add(buttonSizer, 0, wxALL | wxALIGN_CENTER, 10);
 
     panel->SetSizer(sizer);
-
+    
     dlg.Bind(wxEVT_BUTTON, [&dlg](wxCommandEvent&) { dlg.EndModal(wxID_OK); }, wxID_OK);
     dlg.Bind(wxEVT_BUTTON, [&dlg](wxCommandEvent&) { dlg.EndModal(wxID_CANCEL); }, wxID_CANCEL);
 
     if (dlg.ShowModal() == wxID_OK) {
+        // Pobierz dane z pól
+        wxString subject = subjectChoice->GetStringSelection();
+        wxDateTime date = dateCtrl->GetValue();
+        wxString description = descriptionCtrl->GetValue();
+        // Wczytaj istniej¹ce egzaminy z pliku
+       // Wczytaj istniej¹ce egzaminy z pliku
+        std::vector<Exam> allExams = Exam::loadExamsFromFile();
+
+        // Wygeneruj unikalne ID dla nowego egzaminu
+        std::string newExamId = GenerateUniqueExamId(allExams);
+
+        // Wczytaj listê nauczycieli
+        std::vector<Teacher> allTeachers = Teacher::loadTeachersFromFile();
+
+        // ZnajdŸ aktualnie zalogowanego nauczyciela na podstawie adresu e-mail
+        auto it = std::find_if(allTeachers.begin(), allTeachers.end(), [this](const Teacher& teacher) {
+            return teacher.email == teacherEmail.ToStdString();
+            });
+
+        if (it == allTeachers.end()) {
+            wxMessageBox("Logged-in teacher not found.", "Error", wxOK | wxICON_ERROR);
+            return;
+        }
+
+        // Pobierz ID aktualnie zalogowanego nauczyciela
+        std::string teacherId = it->id;
+
+        // Utwórz nowy egzamin z poprawnym teacher_id (ID nauczyciela)
+        Exam newExam(newExamId, date.FormatISODate().ToStdString(), description.ToStdString(), subject.ToStdString(), "t"+teacherId);
+
+        // Dodaj egzamin do listy
+        allExams.push_back(newExam);
+
+        // Zapisz zaktualizowan¹ listê egzaminów do pliku
+        Exam::saveExamsToFile(allExams);
+
+        // Dodaj ID egzaminu do listy egzaminów nauczyciela
+        it->exams.push_back(newExamId);
+
+        // Zapisz zaktualizowan¹ listê nauczycieli do pliku
+        Teacher::saveTeachersToFile(allTeachers);
+
         wxMessageBox("Exam added successfully!", "Success", wxOK | wxICON_INFORMATION);
+
     }
 }
 

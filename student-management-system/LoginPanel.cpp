@@ -11,9 +11,9 @@ void LoginPanel::ShowPasswordResetDialog(wxCommandEvent& event)
     wxTextCtrl* emailCtrl = new wxTextCtrl(panel, wxID_ANY);
 
     wxBoxSizer* btnSizer = new wxBoxSizer(wxHORIZONTAL);
-    wxButton* resetBtn = new wxButton(panel, wxID_OK, "Reset");
+    
     wxButton* cancelBtn = new wxButton(panel, wxID_CANCEL, "Cancel");
-    btnSizer->Add(resetBtn, 0, wxRIGHT, 10);
+    
     btnSizer->Add(cancelBtn);
 
     sizer->Add(label, 0, wxALL, 10);
@@ -75,8 +75,7 @@ LoginPanel::LoginPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY)
     wxButton* loginButton = new wxButton(formPanel, wxID_ANY, "Login");
     loginButton->Bind(wxEVT_BUTTON, &LoginPanel::OnLogin, this);
 
-    wxButton* registerButton = new wxButton(formPanel, wxID_ANY, "Register");
-    registerButton->Bind(wxEVT_BUTTON, &LoginPanel::OnRegister, this);
+  
 
     wxButton* resetPasswordBtn = new wxButton(formPanel, wxID_ANY, "Reset Password");
     resetPasswordBtn->Bind(wxEVT_BUTTON, &LoginPanel::ShowPasswordResetDialog, this);
@@ -89,7 +88,7 @@ LoginPanel::LoginPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY)
     formSizer->Add(roleLabel, 0, wxLEFT | wxRIGHT, 10);
     formSizer->Add(roleChoice, 0, wxALL | wxEXPAND, 10);
     formSizer->Add(loginButton, 0, wxALL | wxEXPAND, 10);
-    formSizer->Add(registerButton, 0, wxALL | wxEXPAND, 10);
+   
     formSizer->Add(resetPasswordBtn, 0, wxALL | wxEXPAND, 10);
 
     formPanel->SetSizer(formSizer);
