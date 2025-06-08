@@ -2,7 +2,9 @@
     {
         "email": "anna.nowak@example.com",
         "exams": [
-            "e1"
+            "e1",
+            "e4",
+            "e5"
         ],
         "first_name": "Anna",
         "grades": [
@@ -18,7 +20,7 @@
     {
         "email": "piotr.kowalski@example.com",
         "exams": [
-            "e2"
+            "e5"
         ],
         "first_name": "Piotr",
         "grades": [

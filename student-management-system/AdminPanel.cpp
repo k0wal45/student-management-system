@@ -158,25 +158,27 @@ void AdminPanel::OnRemoveStudent(wxCommandEvent& event)
     wxStaticText* title = new wxStaticText(panel, wxID_ANY, "Remove Student");
     title->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
     sizer->Add(title, 0, wxALL | wxALIGN_CENTER, 10);
+    vector<Students> students = Students::loadStudentsFromFile();
 
-    // Tworzenie pól wejœciowych
-    auto createField = [&](const wxString& labelText) {
-        wxBoxSizer* fieldSizer = new wxBoxSizer(wxVERTICAL);
 
-        wxStaticText* label = new wxStaticText(panel, wxID_ANY, labelText, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
-        fieldSizer->Add(label, 0, wxALL | wxALIGN_CENTER, 5);
+    // Tworzenie list rozwijalnych
+    wxStaticText* firstNameLabel = new wxStaticText(panel, wxID_ANY, "First Name:");
+    sizer->Add(firstNameLabel, 0, wxALL | wxALIGN_CENTER, 5);
 
-        wxTextCtrl* textCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxDefaultPosition, wxSize(450, -1));
-        fieldSizer->Add(textCtrl, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
+    wxChoice* firstNameChoice = new wxChoice(panel, wxID_ANY);
+    for (const Students& student : students) {
+        firstNameChoice->Append(student.first_name);
+    }
+    sizer->Add(firstNameChoice, 0, wxALL | wxEXPAND, 5);
 
-        return std::make_pair(fieldSizer, textCtrl);
-        };
+    wxStaticText* lastNameLabel = new wxStaticText(panel, wxID_ANY, "Last Name:");
+    sizer->Add(lastNameLabel, 0, wxALL | wxALIGN_CENTER, 5);
 
-    auto firstNameField = createField("First Name:");
-    auto lastNameField = createField("Last Name:");
-
-    sizer->Add(firstNameField.first, 0, wxALL | wxEXPAND, 5);
-    sizer->Add(lastNameField.first, 0, wxALL | wxEXPAND, 5);
+    wxChoice* lastNameChoice = new wxChoice(panel, wxID_ANY);
+    for (const Students& student : students) {
+        lastNameChoice->Append(student.last_name);
+    }
+    sizer->Add(lastNameChoice, 0, wxALL | wxEXPAND, 5);
 
     // Przyciski
     wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -189,18 +191,21 @@ void AdminPanel::OnRemoveStudent(wxCommandEvent& event)
 
     panel->SetSizer(sizer);
 
-    dlg.Bind(wxEVT_BUTTON, [&dlg, &firstNameField, &lastNameField, this](wxCommandEvent&) {
-        wxString firstName = firstNameField.second->GetValue();
-        wxString lastName = lastNameField.second->GetValue();
+    dlg.Bind(wxEVT_BUTTON, [&dlg, firstNameChoice, lastNameChoice, &students, this](wxCommandEvent&) {
+        int firstNameIndex = firstNameChoice->GetSelection();
+        int lastNameIndex = lastNameChoice->GetSelection();
 
-        if (firstName.IsEmpty() || lastName.IsEmpty()) {
-            wxMessageBox("Please fill in both fields.", "Error", wxOK | wxICON_ERROR);
+        if (firstNameIndex == wxNOT_FOUND || lastNameIndex == wxNOT_FOUND) {
+            wxMessageBox("Please select both first name and last name.", "Error", wxOK | wxICON_ERROR);
             return;
         }
 
-        vector<Students> students = Students::loadStudentsFromFile();
+        wxString selectedFirstName = firstNameChoice->GetString(firstNameIndex);
+        wxString selectedLastName = lastNameChoice->GetString(lastNameIndex);
+
+        // ZnajdŸ i usuñ studenta
         auto it = std::remove_if(students.begin(), students.end(), [&](const Students& student) {
-            return student.first_name == firstName.ToStdString() && student.last_name == lastName.ToStdString();
+            return student.first_name == selectedFirstName.ToStdString() && student.last_name == selectedLastName.ToStdString();
             });
 
         if (it != students.end()) {
@@ -228,13 +233,13 @@ void AdminPanel::OnAddStudent(wxCommandEvent& event)
 {
     
     ShowAddUserDialog("Student");
-    RefreshStudentList();
+    
 }
 //evant do dodawania nauczyciela
 void AdminPanel::OnAddTeacher(wxCommandEvent& event)
 {
     ShowAddUserDialog("Teacher");
-    RefreshStudentList();
+    
 }
 
 void AdminPanel::ShowAddUserDialog(const wxString& role)
@@ -316,9 +321,9 @@ void AdminPanel::ShowAddUserDialog(const wxString& role)
 
         // Zapisanie listy studentów do pliku
         Students::saveStudentsToFile(students);
-
+        RefreshStudentList();
         wxMessageBox("Student added successfully!", "Success", wxOK | wxICON_INFORMATION);
-
+       
         
 
         dlg.EndModal(wxID_OK);
@@ -327,8 +332,6 @@ void AdminPanel::ShowAddUserDialog(const wxString& role)
     dlg.Bind(wxEVT_BUTTON, [&dlg](wxCommandEvent&) { dlg.EndModal(wxID_CANCEL); }, wxID_CANCEL);
     
     dlg.ShowModal();
-
-  
 }
 
 

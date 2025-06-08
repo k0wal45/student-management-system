@@ -4,8 +4,8 @@
         "first_name": "Jan",
         "grades": [
             "g1",
-          "g2",
-          "g9"
+            "g2",
+            "g9"
         ],
         "group": "3A",
         "id": "2",
@@ -15,31 +15,25 @@
         "year": 3
     },
     {
-        "email": "f@example.com",
-        "first_name": "fff",
-        "grades": [
-            "g3"
-        ],
-        "group": "",
-        "id": "4",
-        "last_name": "ggg",
-        "major": "aaa",
-        "student_id": "",
-        "year": 3
-    },
-    {
-        "email": "kkan@example.com",
-        "first_name": "Krzysztof",
-        "grades": [
-            "g6",
-            "g7",
-            "g8"
-        ],
+        "email": "siup@example.com",
+        "first_name": "Siup",
+        "grades": [],
         "group": "",
         "id": "3",
-        "last_name": "Kan",
+        "last_name": "SSS",
         "major": "Mathematics",
         "student_id": "",
         "year": 2
+    },
+    {
+        "email": "dsfaf",
+        "first_name": "f",
+        "grades": [],
+        "group": "",
+        "id": "4",
+        "last_name": "sdf",
+        "major": "sdafasdf",
+        "student_id": "",
+        "year": 1
     }
 ]
