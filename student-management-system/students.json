@@ -3,9 +3,9 @@
         "email": "jan.kowalski@example.com",
         "first_name": "Jan",
         "grades": [
-            "g6",
-            "g11",
-            "g12"
+            "g1",
+          "g2",
+          "g9"
         ],
         "group": "3A",
         "id": "2",
@@ -17,7 +17,9 @@
     {
         "email": "f@example.com",
         "first_name": "fff",
-        "grades": [],
+        "grades": [
+            "g3"
+        ],
         "group": "",
         "id": "4",
         "last_name": "ggg",
@@ -28,7 +30,11 @@
     {
         "email": "kkan@example.com",
         "first_name": "Krzysztof",
-        "grades": [],
+        "grades": [
+            "g6",
+            "g7",
+            "g8"
+        ],
         "group": "",
         "id": "3",
         "last_name": "Kan",

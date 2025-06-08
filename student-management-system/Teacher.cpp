@@ -9,8 +9,8 @@ const string Teacher::filePath = "teachers.json";
 
 // Konstruktor
 Teacher::Teacher(const string& id, const string& first_name, const string& last_name,
-    const string& subject, const vector<string>& grades, const vector<string>& exams)
-    : id(id), first_name(first_name), last_name(last_name), subject(subject), grades(grades), exams(exams) {}
+    const string& subject, const string& email, const vector<string>& grades, const vector<string>& exams)
+    : id(id), first_name(first_name), last_name(last_name), subject(subject), email(email), grades(grades), exams(exams) {}
 
 // Destruktor
 Teacher::~Teacher() {}
@@ -209,6 +209,7 @@ vector<Teacher> Teacher::loadTeachersFromFile() {
                 item["first_name"].get<string>(),
                 item["last_name"].get<string>(),
                 item["subject"].get<string>(),
+                item["email"].get<string>(),
                 item["grades"].get<vector<string>>(),
                 item["exams"].get<vector<string>>()
             );
@@ -231,6 +232,7 @@ void Teacher::saveTeachersToFile(const vector<Teacher>& teachers) {
                 {"first_name", teacher.first_name},
                 {"last_name", teacher.last_name},
                 {"subject", teacher.subject},
+                {"email", teacher.email},
                 {"grades", teacher.grades},
                 {"exams", teacher.exams}
                 });

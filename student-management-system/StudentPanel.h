@@ -15,4 +15,5 @@ private:
     wxListCtrl* gradesList;
     wxListCtrl* examsList;
     void ShowStudentDetails();
+    void ShowExams();
 };

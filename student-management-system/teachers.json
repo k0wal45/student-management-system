@@ -1,38 +1,45 @@
 [
-  {
-    "id": "1",
-    "first_name": "Anna",
-    "last_name": "Nowak",
-    "subject": "Mathematics",
-    "grades": [
-      "g1",
-      "g2",
-      "g3"
-    ],
-    "exams": [
-      "e1",
-      "e2"
-    ]
-  },
-  {
-    "id": "2",
-    "first_name": "Piotr",
-    "last_name": "Kowalski",
-    "subject": "Physics",
-    "grades": [
-      "g4",
-      "g5"
-    ],
-    "exams": [
-      "e3"
-    ]
-  },
-  {
-    "id": "3",
-    "first_name": "Maria",
-    "last_name": "Wi�niewska",
-    "subject": "Chemistry",
-    "grades": [],
-    "exams": []
-  }
+    {
+        "email": "anna.nowak@example.com",
+        "exams": [
+            "e1"
+        ],
+        "first_name": "Anna",
+        "grades": [
+            "g1",
+            "g2",
+            "g7",
+            "g8"
+        ],
+        "id": "1",
+        "last_name": "Nowak",
+        "subject": "Mathematics"
+    },
+    {
+        "email": "piotr.kowalski@example.com",
+        "exams": [
+            "e2"
+        ],
+        "first_name": "Piotr",
+        "grades": [
+            "g3",
+            "g9"
+        ],
+        "id": "2",
+        "last_name": "Kowalski",
+        "subject": "Physics"
+    },
+    {
+        "email": "maria.wiśniewska@example.com",
+        "exams": [
+            "e3"
+        ],
+        "first_name": "Maria",
+        "grades": [
+            "g6"
+        ],
+        "id": "3",
+        "last_name": "Wiśniewska",
+        "subject": "Chemistry"
+    }
 ]

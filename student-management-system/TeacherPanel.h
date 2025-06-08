@@ -16,6 +16,7 @@ private:
     wxListCtrl* studentsList;
    //lista ocen
     wxListCtrl* gradesList;
+    wxListCtrl* examsList;
     // Dodane pole do wyszukiwania
     wxTextCtrl* searchCtrl; 
     wxNotebook* notebook;
@@ -28,7 +29,7 @@ private:
     void OnSearch(wxCommandEvent& event);
     void FilterStudents(const wxString& searchText);
 
-
+    void RefreshExamsList();
     //aktualizacja listy ocen po dodaniu
     void RefreshGradesList();
 

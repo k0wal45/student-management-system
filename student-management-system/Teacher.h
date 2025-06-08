@@ -17,13 +17,14 @@ public:
     string first_name;
     string last_name;
     string subject;
+    string email;
     vector<string> grades; // Lista ID ocen wpisanych przez nauczyciela
     vector<string> exams;  // Lista ID egzaminów stworzonych przez nauczyciela
 
     static const string filePath; // Œcie¿ka do pliku JSON
     // Konstruktor i destruktor
     Teacher(const string& id, const string& first_name, const string& last_name,
-        const string& subject, const vector<string>& grades, const vector<string>& exams);
+        const string& subject, const string& email, const vector<string>& grades, const vector<string>& exams);
     ~Teacher();
 
     // Metody publiczne
