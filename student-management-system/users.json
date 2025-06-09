@@ -1,12 +1,37 @@
 [
-  {
-    "login": "admin@example.com",
-    "password": "$2b$10$9hvirPVrp9edjYEc7N1yReaZ8uUqKF3DlCX8IYquh.H7.XlUvsrYm",
-    "role": "admin"
-  },
-  {
-    "login": "user@example.com",
-    "password": "$2b$10$rVKsh0VkgICGqib/zV77.uEoWTr05Dryuu.QSliByZysY4UD5u5E2",
-    "role": "user"
-  }
+    {
+        "login": "admin@example.com",
+        "password": "$2b$10$9hvirPVrp9edjYEc7N1yReaZ8uUqKF3DlCX8IYquh.H7.XlUvsrYm",
+        "role": "admin"
+    },
+    {
+        "login": "anna.nowak@example.com",
+        "password": "$2b$10$rVKsh0VkgICGqib/zV77.uEoWTr05Dryuu.QSliByZysY4UD5u5E2",
+        "role": "teacher"
+    },
+    {
+        "login": "piotr.kowalski@example.com",
+        "password": "$2b$10$rVKsh0VkgICGqib/zV77.uEoWTr05Dryuu.QSliByZysY4UD5u5E2",
+        "role": "teacher"
+    },
+    {
+        "login": "jan.kowalski@example.com",
+        "password": "$2b$10$rVKsh0VkgICGqib/zV77.uEoWTr05Dryuu.QSliByZysY4UD5u5E2",
+        "role": "teacher"
+    },
+    {
+        "login": "julia.kowalska@example.com",
+        "password": "$2b$10$.M4DhRvIdaANw6okrue3He1M/5DHGjcPb4RGCfGfi0gxfdFIVVRFy",
+        "role": "student"
+    },
+    {
+        "login": "dariusz.kowalski@example.com",
+        "password": "$2b$10$dgqWl3RJzL851SdDggvleuMoAZ6t1rvMuRTN2gOKyhm5o0u7uBCwi",
+        "role": "student"
+    },
+    {
+        "login": "jakub.nowak@example.com",
+        "password": "$2b$10$dgqWl3RJzL851SdDggvleuMoAZ6t1rvMuRTN2gOKyhm5o0u7uBCwi",
+        "role": "student"
+    }
 ]

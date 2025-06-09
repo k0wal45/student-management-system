@@ -18,6 +18,7 @@ public:
     string last_name;
     string subject;
     string email;
+	// Has³o nauczyciela, mo¿e byæ u¿ywane do logowania
     vector<string> grades; // Lista ID ocen wpisanych przez nauczyciela
     vector<string> exams;  // Lista ID egzaminów stworzonych przez nauczyciela
 
@@ -37,7 +38,7 @@ public:
     static vector<Teacher> loadTeachersFromFile();
     static void saveTeachersToFile(const vector<Teacher>& teachers);
 
-    static void addTeacher(const Teacher& newTeacher); // Dodanie nauczyciela
+    static void addTeacher(const Teacher& newTeacher, const string& password); // Dodanie nauczyciela
     static void removeTeacher(const string& teacher_id); // Usuniêcie nauczyciela
     static Teacher getTeacherById(const string& teacher_id); // Pobranie nauczyciela po ID
 

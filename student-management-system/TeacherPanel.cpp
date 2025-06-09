@@ -510,7 +510,27 @@ void TeacherPanel::ShowRemoveGradeDialog() {
                     });
 
                 if (it != allGrades.end()) {
+                    // Usuñ ocenê od studenta
                     student.removeGrade(it->id);
+
+                    // Usuñ ocenê od nauczyciela
+                    vector<Teacher> allTeachers = Teacher::loadTeachersFromFile();
+                    auto teacherIt = std::find_if(allTeachers.begin(), allTeachers.end(), [&](const Teacher& teacher) {
+                        return teacher.email == teacherEmail.ToStdString();
+                        });
+
+                    if (teacherIt != allTeachers.end()) {
+                        Teacher& teacher = *teacherIt;
+                        auto gradeIdIt = std::find(teacher.grades.begin(), teacher.grades.end(), it->id);
+                        if (gradeIdIt != teacher.grades.end()) {
+                            teacher.grades.erase(gradeIdIt);
+                        }
+
+                        // Zapisz zaktualizowan¹ listê nauczycieli
+                        Teacher::saveTeachersToFile(allTeachers);
+                    }
+
+                    // Usuñ ocenê z listy ocen
                     allGrades.erase(it);
 
                     // Zapisz zaktualizowan¹ listê ocen

@@ -133,6 +133,8 @@
     <None Include="exams.json">
       <Filter>Database</Filter>
     </None>
-    <None Include="teachers.json" />
+    <None Include="teachers.json">
+      <Filter>Database</Filter>
+    </None>
   </ItemGroup>
 </Project>

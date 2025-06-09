@@ -3,45 +3,51 @@
         "email": "anna.nowak@example.com",
         "exams": [
             "e1",
-            "e4",
-            "e5"
+            "e2"
         ],
         "first_name": "Anna",
         "grades": [
             "g1",
-            "g2",
             "g7",
-            "g8"
+            "g5",
+            "g6"
         ],
         "id": "1",
         "last_name": "Nowak",
         "subject": "Mathematics"
     },
     {
-        "email": "piotr.kowalski@example.com",
+        "email": "jan.kowalski@example.com",
         "exams": [
-            "e5"
+            "e3",
+            "e4"
         ],
-        "first_name": "Piotr",
+        "first_name": "Jan",
         "grades": [
-            "g3",
-            "g9"
+            "g2",
+            "g8",
+            "g9",
+            "g11"
         ],
         "id": "2",
         "last_name": "Kowalski",
         "subject": "Physics"
     },
     {
-        "email": "maria.wiśniewska@example.com",
+        "email": "piotr.kowalski@example.com",
         "exams": [
-            "e3"
+            "e5",
+            "e6"
         ],
-        "first_name": "Maria",
+        "first_name": "Piotr",
         "grades": [
-            "g6"
+            "g3",
+            "g4",
+            "g10",
+            "g12"
         ],
         "id": "3",
-        "last_name": "Wiśniewska",
+        "last_name": "Kowalski",
         "subject": "Chemistry"
     }
 ]

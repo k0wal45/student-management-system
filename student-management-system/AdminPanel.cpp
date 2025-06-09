@@ -5,10 +5,10 @@
 #include "MainFrame.h"
 
 #include <wx/datectrl.h>
-
+#include "Teacher.h"
 
 #include "TeacherPanel.h"
-
+#include "fstream"
 #include <wx/datectrl.h>
 #include "Students.h"
 #include "Grade.h"
@@ -19,6 +19,7 @@
 
 #include <iterator>
 #include <wx/arrstr.h>
+#include "bcrypt.h"
 
 
 AdminPanel::AdminPanel(wxWindow* parent)
@@ -86,9 +87,11 @@ AdminPanel::AdminPanel(wxWindow* parent)
     wxBoxSizer* teacherButtonSizer = new wxBoxSizer(wxHORIZONTAL);
     wxButton* addTeacherBtn = new wxButton(teachersPanel, wxID_ANY, "Add New Teacher");
     addTeacherBtn->Bind(wxEVT_BUTTON, &AdminPanel::OnAddTeacher, this);
+    wxButton* removeTeacherBtn = new wxButton(teachersPanel, wxID_ANY, "Remove Teacher");
+    removeTeacherBtn->Bind(wxEVT_BUTTON, &AdminPanel::OnRemoveTeacher, this);
 
     teacherButtonSizer->Add(addTeacherBtn, 0, wxALL, 5);
-
+    teacherButtonSizer->Add(removeTeacherBtn, 0, wxALL, 5);
     teachersSizer->Add(teacherButtonSizer, 0, wxALL, 5);
 
     // Lista nauczycieli
@@ -98,6 +101,17 @@ AdminPanel::AdminPanel(wxWindow* parent)
     teachersList->AppendColumn("Last Name", wxLIST_FORMAT_LEFT, 150);
     teachersList->AppendColumn("Email", wxLIST_FORMAT_LEFT, 200);
     teachersList->AppendColumn("Subject", wxLIST_FORMAT_LEFT, 150);
+
+    // Wczytanie nauczycieli z pliku teachers.json
+    vector<Teacher> teachers = Teacher::loadTeachersFromFile();
+
+    for (const Teacher& teacher : teachers) {
+        long index = teachersList->InsertItem(teachersList->GetItemCount(), teacher.id);
+        teachersList->SetItem(index, 1, teacher.first_name);
+        teachersList->SetItem(index, 2, teacher.last_name);
+        teachersList->SetItem(index, 3, teacher.email);
+        teachersList->SetItem(index, 4, teacher.subject);
+    }
 
     teachersSizer->Add(teachersList, 1, wxALL | wxEXPAND, 5);
     teachersPanel->SetSizer(teachersSizer);
@@ -158,27 +172,18 @@ void AdminPanel::OnRemoveStudent(wxCommandEvent& event)
     wxStaticText* title = new wxStaticText(panel, wxID_ANY, "Remove Student");
     title->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
     sizer->Add(title, 0, wxALL | wxALIGN_CENTER, 10);
+
     vector<Students> students = Students::loadStudentsFromFile();
 
+    // Tworzenie listy rozwijalnej z pe³nymi nazwiskami studentów
+    wxStaticText* studentLabel = new wxStaticText(panel, wxID_ANY, "Select Student:");
+    sizer->Add(studentLabel, 0, wxALL | wxALIGN_CENTER, 5);
 
-    // Tworzenie list rozwijalnych
-    wxStaticText* firstNameLabel = new wxStaticText(panel, wxID_ANY, "First Name:");
-    sizer->Add(firstNameLabel, 0, wxALL | wxALIGN_CENTER, 5);
-
-    wxChoice* firstNameChoice = new wxChoice(panel, wxID_ANY);
+    wxChoice* studentChoice = new wxChoice(panel, wxID_ANY);
     for (const Students& student : students) {
-        firstNameChoice->Append(student.first_name);
+        studentChoice->Append(student.first_name + " " + student.last_name);
     }
-    sizer->Add(firstNameChoice, 0, wxALL | wxEXPAND, 5);
-
-    wxStaticText* lastNameLabel = new wxStaticText(panel, wxID_ANY, "Last Name:");
-    sizer->Add(lastNameLabel, 0, wxALL | wxALIGN_CENTER, 5);
-
-    wxChoice* lastNameChoice = new wxChoice(panel, wxID_ANY);
-    for (const Students& student : students) {
-        lastNameChoice->Append(student.last_name);
-    }
-    sizer->Add(lastNameChoice, 0, wxALL | wxEXPAND, 5);
+    sizer->Add(studentChoice, 0, wxALL | wxEXPAND, 5);
 
     // Przyciski
     wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -191,33 +196,75 @@ void AdminPanel::OnRemoveStudent(wxCommandEvent& event)
 
     panel->SetSizer(sizer);
 
-    dlg.Bind(wxEVT_BUTTON, [&dlg, firstNameChoice, lastNameChoice, &students, this](wxCommandEvent&) {
-        int firstNameIndex = firstNameChoice->GetSelection();
-        int lastNameIndex = lastNameChoice->GetSelection();
+    dlg.Bind(wxEVT_BUTTON, [&dlg, studentChoice, &students, this](wxCommandEvent&) {
+        int selectedIndex = studentChoice->GetSelection();
 
-        if (firstNameIndex == wxNOT_FOUND || lastNameIndex == wxNOT_FOUND) {
-            wxMessageBox("Please select both first name and last name.", "Error", wxOK | wxICON_ERROR);
+        if (selectedIndex == wxNOT_FOUND) {
+            wxMessageBox("Please select a student.", "Error", wxOK | wxICON_ERROR);
             return;
         }
 
-        wxString selectedFirstName = firstNameChoice->GetString(firstNameIndex);
-        wxString selectedLastName = lastNameChoice->GetString(lastNameIndex);
+        // Pobranie wybranego studenta
+        const Students& selectedStudent = students[selectedIndex];
+        string studentId = selectedStudent.id;
+        string studentEmail = selectedStudent.email;
+        vector<string> gradesToRemove = selectedStudent.grades;
 
-        // ZnajdŸ i usuñ studenta
-        auto it = std::remove_if(students.begin(), students.end(), [&](const Students& student) {
-            return student.first_name == selectedFirstName.ToStdString() && student.last_name == selectedLastName.ToStdString();
-            });
+        // Usuniêcie studenta z listy
+        students.erase(students.begin() + selectedIndex);
+        Students::saveStudentsToFile(students);
 
-        if (it != students.end()) {
-            students.erase(it, students.end());
-            Students::saveStudentsToFile(students);
-            wxMessageBox("Student removed successfully.", "Success", wxOK | wxICON_INFORMATION);
-            RefreshStudentList();
+        // Wczytanie i aktualizacja listy ocen
+        vector<Grade> grades = Grade::loadGradesFromFile();
+        grades.erase(remove_if(grades.begin(), grades.end(), [&gradesToRemove](const Grade& grade) {
+            return find(gradesToRemove.begin(), gradesToRemove.end(), grade.id) != gradesToRemove.end();
+            }), grades.end());
+        Grade::saveGradesToFile(grades);
+
+        // Wczytanie i aktualizacja nauczycieli
+        vector<Teacher> teachers = Teacher::loadTeachersFromFile();
+        for (Teacher& teacher : teachers) {
+            teacher.grades.erase(remove_if(teacher.grades.begin(), teacher.grades.end(), [&gradesToRemove](const string& gradeId) {
+                return find(gradesToRemove.begin(), gradesToRemove.end(), gradeId) != gradesToRemove.end();
+                }), teacher.grades.end());
+        }
+        Teacher::saveTeachersToFile(teachers);
+
+        // Usuniêcie u¿ytkownika z pliku `users.json`
+        ifstream usersFile("users.json");
+        json usersData;
+
+        if (usersFile.is_open()) {
+            usersFile >> usersData;
+            usersFile.close();
         }
         else {
-            wxMessageBox("Student not found.", "Error", wxOK | wxICON_ERROR);
+            wxMessageBox("Cannot open users.json file.", "Error", wxOK | wxICON_ERROR);
+            return;
         }
 
+        auto userIt = find_if(usersData.begin(), usersData.end(), [&studentEmail](const json& user) {
+            return user["login"] == studentEmail;
+            });
+
+        if (userIt != usersData.end()) {
+            usersData.erase(userIt);
+            ofstream usersOutFile("users.json");
+            if (usersOutFile.is_open()) {
+                usersOutFile << usersData.dump(4);
+                usersOutFile.close();
+            }
+            else {
+                wxMessageBox("Cannot save to users.json file.", "Error", wxOK | wxICON_ERROR);
+                return;
+            }
+        }
+        else {
+            wxMessageBox("User not found in users.json.", "Error", wxOK | wxICON_ERROR);
+        }
+
+        wxMessageBox("Student and their grades removed successfully.", "Success", wxOK | wxICON_INFORMATION);
+        RefreshStudentList(); // Odœwie¿enie listy studentów
         dlg.EndModal(wxID_OK);
         }, wxID_OK);
 
@@ -244,6 +291,7 @@ void AdminPanel::OnAddTeacher(wxCommandEvent& event)
 
 void AdminPanel::ShowAddUserDialog(const wxString& role)
 {
+    
     wxDialog dlg(this, wxID_ANY, "Add New " + role, wxDefaultPosition, wxSize(400, 600));
 
     wxPanel* panel = new wxPanel(&dlg);
@@ -265,77 +313,294 @@ void AdminPanel::ShowAddUserDialog(const wxString& role)
 
         return std::make_pair(fieldSizer, textCtrl);
         };
+    if (role == "Student") {
+        auto firstNameField = createField("First Name:");
+        auto lastNameField = createField("Last Name:");
+        auto emailField = createField("Email:");
+        auto majorField = createField("Major:");
+        auto yearField = createField("Year:");
 
-    auto firstNameField = createField("First Name:");
-    auto lastNameField = createField("Last Name:");
-    auto emailField = createField("Email:");
-    auto majorField = createField("Major:");
-    auto yearField = createField("Year:");
+        sizer->Add(firstNameField.first, 0, wxALL | wxALIGN_CENTER, 5);
+        sizer->Add(lastNameField.first, 0, wxALL | wxALIGN_CENTER, 5);
+        sizer->Add(emailField.first, 0, wxALL | wxALIGN_CENTER, 5);
+        sizer->Add(majorField.first, 0, wxALL | wxALIGN_CENTER, 5);
+        sizer->Add(yearField.first, 0, wxALL | wxALIGN_CENTER, 5);
 
-    sizer->Add(firstNameField.first, 0, wxALL | wxEXPAND, 5);
-    sizer->Add(lastNameField.first, 0, wxALL | wxEXPAND, 5);
-    sizer->Add(emailField.first, 0, wxALL | wxEXPAND, 5);
-    sizer->Add(majorField.first, 0, wxALL | wxEXPAND, 5);
-    sizer->Add(yearField.first, 0, wxALL | wxEXPAND, 5);
+        wxButton* addButton = new wxButton(panel, wxID_ANY, "Add Student");
+        sizer->Add(addButton, 0, wxALL | wxALIGN_CENTER, 10);
+
+        addButton->Bind(wxEVT_BUTTON, [&](wxCommandEvent&) {
+            // Pobranie danych z pól
+            wxString firstName = firstNameField.second->GetValue();
+            wxString lastName = lastNameField.second->GetValue();
+            wxString email = emailField.second->GetValue();
+            wxString major = majorField.second->GetValue();
+            wxString yearStr = yearField.second->GetValue();
+
+            if (firstName.IsEmpty() || lastName.IsEmpty() || email.IsEmpty() || major.IsEmpty() || yearStr.IsEmpty()) {
+                wxMessageBox("All fields are required.", "Error", wxOK | wxICON_ERROR);
+                return;
+            }
+
+            int year = wxAtoi(yearStr);
+            if (year <= 0) {
+                wxMessageBox("Year must be a positive number.", "Error", wxOK | wxICON_ERROR);
+                return;
+            }
+
+            // ZnajdŸ najwiêksze ID wœród istniej¹cych studentów
+            vector<Students> students = Students::loadStudentsFromFile();
+            int maxId = 0;
+
+            for (const Students& student : students) {
+                int currentId = std::stoi(student.id);
+                if (currentId > maxId) {
+                    maxId = currentId;
+                }
+            }
+
+            // Tworzenie nowego studenta z ID o 1 wiêkszym od najwiêkszego
+            int newId = maxId + 1;
+            Students newStudent(std::to_string(newId),
+                firstName.ToStdString(), lastName.ToStdString(), "",
+                email.ToStdString(), major.ToStdString(), year, "", {});
+
+            // Dodanie studenta
+            try {
+             
+
+                // Dodanie studenta do pliku students.json
+                Students::addStudent(newStudent, "userpassword");
+
+             
+
+                // Dodanie nowego u¿ytkownika do danych
+                students.push_back(newStudent);
+                // Zapisanie listy studentów do pliku
+                Students::saveStudentsToFile(students);
+              
+
+                wxMessageBox("Student added successfully.", "Success", wxOK | wxICON_INFORMATION);
+                // Zamkniêcie okna dialogowego
+                dlg.EndModal(wxID_OK);
+                RefreshStudentList();
+            }
+            catch (const std::exception& e) {
+                wxMessageBox(e.what(), "Error", wxOK | wxICON_ERROR);
+            }
+            });
+
+        panel->SetSizer(sizer);
+        dlg.ShowModal();
+    }
+    else if(role == "Teacher") {
+        auto firstNameField = createField("First Name:");
+        auto lastNameField = createField("Last Name:");
+        auto emailField = createField("Email:");
+        auto subjectField = createField("Subject:");
+        
+
+
+        sizer->Add(firstNameField.first, 0, wxALL | wxEXPAND, 5);
+        sizer->Add(lastNameField.first, 0, wxALL | wxEXPAND, 5);
+        sizer->Add(emailField.first, 0, wxALL | wxEXPAND, 5);
+        sizer->Add(subjectField.first, 0, wxALL | wxEXPAND, 5);
+        
+
+
+        // Przyciski
+        wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
+        wxButton* addBtn = new wxButton(panel, wxID_OK, "Add");
+        wxButton* cancelBtn = new wxButton(panel, wxID_CANCEL, "Cancel");
+        buttonSizer->Add(addBtn, 0, wxALL, 5);
+        buttonSizer->Add(cancelBtn, 0, wxALL, 5);
+
+        sizer->Add(buttonSizer, 0, wxALL | wxALIGN_CENTER, 10);
+
+        panel->SetSizer(sizer);
+
+        dlg.Bind(wxEVT_BUTTON, [&dlg, &firstNameField, &lastNameField, &emailField, &subjectField, this](wxCommandEvent&) {
+            wxString firstName = firstNameField.second->GetValue();
+            wxString lastName = lastNameField.second->GetValue();
+            wxString email = emailField.second->GetValue();
+            wxString major = subjectField.second->GetValue();
+          
+
+
+            if (firstName.IsEmpty() || lastName.IsEmpty() || email.IsEmpty() || major.IsEmpty()) {
+                wxMessageBox("Please fill in all fields.", "Error", wxOK | wxICON_ERROR);
+                return;
+            }
+
+            // Wczytaj istniej¹cych studentów z pliku
+            vector<Teacher> Teachers = Teacher::loadTeachersFromFile();
+
+            // Generowanie unikalnego ID dla nowego studenta
+            const std::string newId = std::to_string(Teachers.size() + 1);
+
+
+            // Tworzenie nowego obiektu studenta
+            Teacher newTeacher(newId, firstName.ToStdString(), lastName.ToStdString(), major.ToStdString(), email.ToStdString(), vector<string>(), {});
+            // Dodanie nowego studenta do pliku i bazy u¿ytkowników
+            Teacher::addTeacher(newTeacher, "userpassword");
+
+            // Dodanie nowego studenta do listy
+            Teachers.push_back(newTeacher);
+
+            // Zapisanie listy studentów do pliku
+            Teacher::saveTeachersToFile(Teachers);
+            RefreshStudentList();
+            wxMessageBox("Teacher added successfully!", "Success", wxOK | wxICON_INFORMATION);
+
+            dlg.EndModal(wxID_OK);
+            }, wxID_OK);
+
+        dlg.Bind(wxEVT_BUTTON, [&dlg](wxCommandEvent&) { dlg.EndModal(wxID_CANCEL); }, wxID_CANCEL);
+
+        dlg.ShowModal();
+    }
+   
+}
+void AdminPanel::RefreshTeacherList()
+{
+    if (!teachersList) return;
+
+    teachersList->Freeze();
+    teachersList->DeleteAllItems();
+
+    vector<Teacher> allTeachers = Teacher::loadTeachersFromFile();
+
+    for (const Teacher& teacher : allTeachers) {
+        long index = teachersList->InsertItem(teachersList->GetItemCount(), teacher.id);
+        teachersList->SetItem(index, 1, teacher.first_name);
+        teachersList->SetItem(index, 2, teacher.last_name);
+        teachersList->SetItem(index, 3, teacher.email);
+        teachersList->SetItem(index, 4, teacher.subject);
+    }
+
+    teachersList->Thaw();
+    teachersList->Refresh();
+}
+
+void AdminPanel::OnRemoveTeacher(wxCommandEvent& event)
+{
+    wxDialog dlg(this, wxID_ANY, "Remove Teacher", wxDefaultPosition, wxSize(300, 600));
+
+    wxPanel* panel = new wxPanel(&dlg);
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+
+    wxStaticText* title = new wxStaticText(panel, wxID_ANY, "Remove Teacher");
+    title->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
+    sizer->Add(title, 0, wxALL | wxALIGN_CENTER, 10);
+
+    vector<Teacher> teachers = Teacher::loadTeachersFromFile();
+
+    // Tworzenie listy rozwijalnej z pe³nymi nazwiskami nauczycieli
+    wxStaticText* teacherLabel = new wxStaticText(panel, wxID_ANY, "Select Teacher:");
+    sizer->Add(teacherLabel, 0, wxALL | wxALIGN_CENTER, 5);
+
+    wxChoice* teacherChoice = new wxChoice(panel, wxID_ANY);
+    for (const Teacher& teacher : teachers) {
+        teacherChoice->Append(teacher.first_name + " " + teacher.last_name);
+    }
+    sizer->Add(teacherChoice, 0, wxALL | wxEXPAND, 5);
 
     // Przyciski
     wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
-    wxButton* addBtn = new wxButton(panel, wxID_OK, "Add");
+    wxButton* removeBtn = new wxButton(panel, wxID_OK, "Remove");
     wxButton* cancelBtn = new wxButton(panel, wxID_CANCEL, "Cancel");
-    buttonSizer->Add(addBtn, 0, wxALL, 5);
+    buttonSizer->Add(removeBtn, 0, wxALL, 5);
     buttonSizer->Add(cancelBtn, 0, wxALL, 5);
 
     sizer->Add(buttonSizer, 0, wxALL | wxALIGN_CENTER, 10);
 
     panel->SetSizer(sizer);
 
-    dlg.Bind(wxEVT_BUTTON, [&dlg, &firstNameField, &lastNameField, &emailField, &majorField, &yearField, this](wxCommandEvent&) {
-        wxString firstName = firstNameField.second->GetValue();
-        wxString lastName = lastNameField.second->GetValue();
-        wxString email = emailField.second->GetValue();
-        wxString major = majorField.second->GetValue();
-        wxString yearStr = yearField.second->GetValue();
+    dlg.Bind(wxEVT_BUTTON, [&dlg, teacherChoice, &teachers, this](wxCommandEvent&) {
+        int selectedIndex = teacherChoice->GetSelection();
 
-        if (firstName.IsEmpty() || lastName.IsEmpty() || email.IsEmpty() || major.IsEmpty() || yearStr.IsEmpty()) {
-            wxMessageBox("Please fill in all fields.", "Error", wxOK | wxICON_ERROR);
+        if (selectedIndex == wxNOT_FOUND) {
+            wxMessageBox("Please select a teacher.", "Error", wxOK | wxICON_ERROR);
             return;
         }
 
-        int year;
-        if (!yearStr.ToLong((long*)&year) || year <= 0) {
-            wxMessageBox("Year must be a positive number.", "Error", wxOK | wxICON_ERROR);
-            return;
-        }
+        // Pobranie wybranego nauczyciela
+        const Teacher& selectedTeacher = teachers[selectedIndex];
+        string teacherId = selectedTeacher.id;
+        string teacherEmail = selectedTeacher.email;
+        vector<string> examsToRemove = selectedTeacher.exams;
+        vector<string> gradesToRemove = selectedTeacher.grades;
 
-        // Wczytaj istniej¹cych studentów z pliku
+        // Usuniêcie nauczyciela z listy
+        teachers.erase(teachers.begin() + selectedIndex);
+        Teacher::saveTeachersToFile(teachers);
+
+        // Wczytanie i aktualizacja listy egzaminów
+        vector<Exam> exams = Exam::loadExamsFromFile();
+        exams.erase(remove_if(exams.begin(), exams.end(), [&examsToRemove](const Exam& exam) {
+            return find(examsToRemove.begin(), examsToRemove.end(), exam.id) != examsToRemove.end();
+            }), exams.end());
+        Exam::saveExamsToFile(exams);
+
+        // Wczytanie i aktualizacja listy ocen
+        vector<Grade> grades = Grade::loadGradesFromFile();
+        grades.erase(remove_if(grades.begin(), grades.end(), [&gradesToRemove](const Grade& grade) {
+            return find(gradesToRemove.begin(), gradesToRemove.end(), grade.id) != gradesToRemove.end();
+            }), grades.end());
+        Grade::saveGradesToFile(grades);
+
+        // Wczytanie i aktualizacja studentów
         vector<Students> students = Students::loadStudentsFromFile();
-
-        // Generowanie unikalnego ID dla nowego studenta
-        std::string newId =  std::to_string(students.size() + 1);
-
-        // Tworzenie nowego obiektu studenta
-        Students newStudent(newId, firstName.ToStdString(), lastName.ToStdString(), "", email.ToStdString(), major.ToStdString(), year, "", {});
-
-        // Dodanie nowego studenta do listy
-        students.push_back(newStudent);
-
-        // Zapisanie listy studentów do pliku
+        for (Students& student : students) {
+            student.grades.erase(remove_if(student.grades.begin(), student.grades.end(), [&gradesToRemove](const string& gradeId) {
+                return find(gradesToRemove.begin(), gradesToRemove.end(), gradeId) != gradesToRemove.end();
+                }), student.grades.end());
+        }
         Students::saveStudentsToFile(students);
-        RefreshStudentList();
-        wxMessageBox("Student added successfully!", "Success", wxOK | wxICON_INFORMATION);
-       
-        
 
+        // Usuniêcie u¿ytkownika z pliku `users.json`
+        ifstream usersFile("users.json");
+        json usersData;
+
+        if (usersFile.is_open()) {
+            usersFile >> usersData;
+            usersFile.close();
+        }
+        else {
+            wxMessageBox("Cannot open users.json file.", "Error", wxOK | wxICON_ERROR);
+            return;
+        }
+
+        auto userIt = find_if(usersData.begin(), usersData.end(), [&teacherEmail](const json& user) {
+            return user["login"] == teacherEmail;
+            });
+
+        if (userIt != usersData.end()) {
+            usersData.erase(userIt);
+            ofstream usersOutFile("users.json");
+            if (usersOutFile.is_open()) {
+                usersOutFile << usersData.dump(4);
+                usersOutFile.close();
+            }
+            else {
+                wxMessageBox("Cannot save to users.json file.", "Error", wxOK | wxICON_ERROR);
+                return;
+            }
+        }
+        else {
+            wxMessageBox("User not found in users.json.", "Error", wxOK | wxICON_ERROR);
+        }
+
+        wxMessageBox("Teacher and their exams and grades removed successfully.", "Success", wxOK | wxICON_INFORMATION);
+        RefreshTeacherList(); // Odœwie¿enie listy nauczycieli
         dlg.EndModal(wxID_OK);
         }, wxID_OK);
 
     dlg.Bind(wxEVT_BUTTON, [&dlg](wxCommandEvent&) { dlg.EndModal(wxID_CANCEL); }, wxID_CANCEL);
-    
+
     dlg.ShowModal();
+
 }
-
-
-
 
 
 

@@ -11,8 +11,11 @@ private:
     
     wxNotebook* notebook;
     wxListCtrl* studentsList;
+    wxListCtrl* teachersList;
 	//dododawanie studentów
     void OnAddStudent(wxCommandEvent& event);
+    void RefreshTeacherList();
+    void OnRemoveTeacher(wxCommandEvent& event);
 	//dodawanie nauczycieli
     void OnAddTeacher(wxCommandEvent& event);
 

@@ -244,7 +244,7 @@ void Teacher::saveTeachersToFile(const vector<Teacher>& teachers) {
 }
 
 // Dodanie nauczyciela
-void Teacher::addTeacher(const Teacher& newTeacher, const string password) {
+void Teacher::addTeacher(const Teacher& newTeacher, const string& password) {
     // Wczytanie listy nauczycieli z pliku
     vector<Teacher> teachers = loadTeachersFromFile();
 
