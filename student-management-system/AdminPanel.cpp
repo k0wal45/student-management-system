@@ -1,48 +1,45 @@
+//Pliki nag³ówkowe
 #include "AdminPanel.h"
-
-#include <wx/listctrl.h>
-
+#include "StudentPanel.h"
+#include "bcrypt.h"
 #include "MainFrame.h"
-
-#include <wx/datectrl.h>
-#include "Teacher.h"
-
-#include "TeacherPanel.h"
-#include "fstream"
-#include <wx/datectrl.h>
 #include "Students.h"
 #include "Grade.h"
+#include "Teacher.h"
+#include "TeacherPanel.h"
+//WxWidgets
+#include <wx/listctrl.h>
+#include <wx/datectrl.h>
+#include <wx/datectrl.h>
+//Biblioteki standardowe
 #include <set>
 #include <regex>
 #include <algorithm>
-#include "StudentPanel.h"
-
 #include <iterator>
-#include <wx/arrstr.h>
-#include "bcrypt.h"
+#include <fstream>
 
+
+//konstruktor panelu administratora
 
 AdminPanel::AdminPanel(wxWindow* parent)
     : wxPanel(parent)
 {
-
     SetBackgroundColour(wxColour(240, 240, 240));
-
     wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
 
-    // Nag³ówek
+    //Nag³ówek
     wxStaticText* title = new wxStaticText(this, wxID_ANY, "Administrator Panel", wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     title->SetFont(wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
     mainSizer->Add(title, 0, wxALL | wxEXPAND, 10);
 
-    // Notebook z zak³adkami
+    //Notebook z zak³adkami
     notebook = new wxNotebook(this, wxID_ANY);
 
-    // Zak³adka Studenci
+    //Zak³adka Studenci
     wxPanel* studentsPanel = new wxPanel(notebook);
     wxBoxSizer* studentsSizer = new wxBoxSizer(wxVERTICAL);
 
-    // Przyciski dodawania i usuwania studentów
+    //Przyciski dodawania i usuwania studentów
     wxBoxSizer* studentButtonSizer = new wxBoxSizer(wxHORIZONTAL);
     wxButton* addStudentBtn = new wxButton(studentsPanel, wxID_ANY, "Add New Student");
     addStudentBtn->Bind(wxEVT_BUTTON, &AdminPanel::OnAddStudent, this);
@@ -55,7 +52,7 @@ AdminPanel::AdminPanel(wxWindow* parent)
 
     studentsSizer->Add(studentButtonSizer, 0, wxALL, 5);
 
-    // Lista studentów
+    //Lista studentów
     wxListCtrl* studentsList = new wxListCtrl(studentsPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
     studentsList->AppendColumn("ID", wxLIST_FORMAT_LEFT, 80);
     studentsList->AppendColumn("First name", wxLIST_FORMAT_LEFT, 150);
@@ -79,11 +76,11 @@ AdminPanel::AdminPanel(wxWindow* parent)
 
     notebook->AddPage(studentsPanel, "Students");
 
-    // Zak³adka Nauczyciele
+    //Zak³adka Nauczyciele
     wxPanel* teachersPanel = new wxPanel(notebook);
     wxBoxSizer* teachersSizer = new wxBoxSizer(wxVERTICAL);
 
-    // Przyciski dodawania nauczycieli
+    //Przyciski dodawania nauczycieli
     wxBoxSizer* teacherButtonSizer = new wxBoxSizer(wxHORIZONTAL);
     wxButton* addTeacherBtn = new wxButton(teachersPanel, wxID_ANY, "Add New Teacher");
     addTeacherBtn->Bind(wxEVT_BUTTON, &AdminPanel::OnAddTeacher, this);
@@ -94,7 +91,7 @@ AdminPanel::AdminPanel(wxWindow* parent)
     teacherButtonSizer->Add(removeTeacherBtn, 0, wxALL, 5);
     teachersSizer->Add(teacherButtonSizer, 0, wxALL, 5);
 
-    // Lista nauczycieli
+    //Lista nauczycieli
     wxListCtrl* teachersList = new wxListCtrl(teachersPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
     teachersList->AppendColumn("ID", wxLIST_FORMAT_LEFT, 80);
     teachersList->AppendColumn("First name", wxLIST_FORMAT_LEFT, 150);
@@ -102,7 +99,7 @@ AdminPanel::AdminPanel(wxWindow* parent)
     teachersList->AppendColumn("Email", wxLIST_FORMAT_LEFT, 200);
     teachersList->AppendColumn("Subject", wxLIST_FORMAT_LEFT, 150);
 
-    // Wczytanie nauczycieli z pliku teachers.json
+    //Wczytanie nauczycieli z pliku teachers.json
     vector<Teacher> teachers = Teacher::loadTeachersFromFile();
 
     for (const Teacher& teacher : teachers) {
@@ -120,7 +117,7 @@ AdminPanel::AdminPanel(wxWindow* parent)
 
     mainSizer->Add(notebook, 1, wxALL | wxEXPAND, 5);
 
-    // Przycisk powrotu
+    //Przycisk powrotu
     wxButton* backBtn = new wxButton(this, wxID_ANY, "Back to Login");
     backBtn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
         MainFrame* frame = dynamic_cast<MainFrame*>(GetParent());
@@ -133,15 +130,16 @@ AdminPanel::AdminPanel(wxWindow* parent)
 
 
 
+//Odœwie¿enie listy studentów
 
-    void AdminPanel::RefreshStudentList()
-    {
-
+void AdminPanel::RefreshStudentList()
+{
         if (!studentsList) return;
 
         studentsList->Freeze();
         studentsList->DeleteAllItems();
 
+		//Wczytanie studentów z pliku students.json
         vector<Students> allStudents = Students::loadStudentsFromFile();
 
         for (const Students& student : allStudents) {
@@ -155,12 +153,39 @@ AdminPanel::AdminPanel(wxWindow* parent)
 
         studentsList->Thaw();
         studentsList->Refresh();
+}
+
+
+
+//Odœwie¿enie listy nauczycieli
+
+void AdminPanel::RefreshTeacherList()
+{
+    if (!teachersList) return;
+
+    teachersList->Freeze();
+    teachersList->DeleteAllItems();
+	//Wczytanie nauczycieli z pliku teachers.json
+    vector<Teacher> allTeachers = Teacher::loadTeachersFromFile();
+
+    for (const Teacher& teacher : allTeachers) {
+        long index = teachersList->InsertItem(teachersList->GetItemCount(), teacher.id);
+        teachersList->SetItem(index, 1, teacher.first_name);
+        teachersList->SetItem(index, 2, teacher.last_name);
+        teachersList->SetItem(index, 3, teacher.email);
+        teachersList->SetItem(index, 4, teacher.subject);
     }
 
+    teachersList->Thaw();
+    teachersList->Refresh();
+}
 
 
 
 
+
+
+//Usuniêcie studenta wraz z jego ocenami
 
 void AdminPanel::OnRemoveStudent(wxCommandEvent& event)
 {
@@ -169,13 +194,15 @@ void AdminPanel::OnRemoveStudent(wxCommandEvent& event)
     wxPanel* panel = new wxPanel(&dlg);
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 
+	//Nag³ówek
     wxStaticText* title = new wxStaticText(panel, wxID_ANY, "Remove Student");
     title->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
     sizer->Add(title, 0, wxALL | wxALIGN_CENTER, 10);
 
+	//Wczytanie studentów z pliku students.json
     vector<Students> students = Students::loadStudentsFromFile();
 
-    // Tworzenie listy rozwijalnej z pe³nymi nazwiskami studentów
+    //Tworzenie listy rozwijalnej z pe³nymi nazwiskami studentów
     wxStaticText* studentLabel = new wxStaticText(panel, wxID_ANY, "Select Student:");
     sizer->Add(studentLabel, 0, wxALL | wxALIGN_CENTER, 5);
 
@@ -185,7 +212,7 @@ void AdminPanel::OnRemoveStudent(wxCommandEvent& event)
     }
     sizer->Add(studentChoice, 0, wxALL | wxEXPAND, 5);
 
-    // Przyciski
+    //Przyciski
     wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
     wxButton* removeBtn = new wxButton(panel, wxID_OK, "Remove");
     wxButton* cancelBtn = new wxButton(panel, wxID_CANCEL, "Cancel");
@@ -204,24 +231,26 @@ void AdminPanel::OnRemoveStudent(wxCommandEvent& event)
             return;
         }
 
-        // Pobranie wybranego studenta
+        //Pobranie wybranego studenta
         const Students& selectedStudent = students[selectedIndex];
         string studentId = selectedStudent.id;
         string studentEmail = selectedStudent.email;
         vector<string> gradesToRemove = selectedStudent.grades;
 
-        // Usuniêcie studenta z listy
+        //Usuniêcie studenta z listy
         students.erase(students.begin() + selectedIndex);
         Students::saveStudentsToFile(students);
 
-        // Wczytanie i aktualizacja listy ocen
+
+        //Wczytanie i aktualizacja listy ocen
         vector<Grade> grades = Grade::loadGradesFromFile();
         grades.erase(remove_if(grades.begin(), grades.end(), [&gradesToRemove](const Grade& grade) {
             return find(gradesToRemove.begin(), gradesToRemove.end(), grade.id) != gradesToRemove.end();
             }), grades.end());
         Grade::saveGradesToFile(grades);
 
-        // Wczytanie i aktualizacja nauczycieli
+
+        //Wczytanie i aktualizacja nauczycieli
         vector<Teacher> teachers = Teacher::loadTeachersFromFile();
         for (Teacher& teacher : teachers) {
             teacher.grades.erase(remove_if(teacher.grades.begin(), teacher.grades.end(), [&gradesToRemove](const string& gradeId) {
@@ -230,7 +259,7 @@ void AdminPanel::OnRemoveStudent(wxCommandEvent& event)
         }
         Teacher::saveTeachersToFile(teachers);
 
-        // Usuniêcie u¿ytkownika z pliku `users.json`
+        //Usuniêcie u¿ytkownika z pliku `users.json`
         ifstream usersFile("users.json");
         json usersData;
 
@@ -264,7 +293,11 @@ void AdminPanel::OnRemoveStudent(wxCommandEvent& event)
         }
 
         wxMessageBox("Student and their grades removed successfully.", "Success", wxOK | wxICON_INFORMATION);
-        RefreshStudentList(); // Odœwie¿enie listy studentów
+
+        //Odœwie¿enie listy studentów
+        RefreshStudentList(); 
+
+		//Zamkniêcie okna dialogowego
         dlg.EndModal(wxID_OK);
         }, wxID_OK);
 
@@ -275,19 +308,27 @@ void AdminPanel::OnRemoveStudent(wxCommandEvent& event)
 
 
 
-//evant do dodawania studenta
+//Event do dodawania studenta
+
 void AdminPanel::OnAddStudent(wxCommandEvent& event)
 {
-    
     ShowAddUserDialog("Student");
     
 }
-//evant do dodawania nauczyciela
+
+
+//Event do dodawania nauczyciela
+
 void AdminPanel::OnAddTeacher(wxCommandEvent& event)
 {
     ShowAddUserDialog("Teacher");
     
 }
+
+
+
+
+//Dodanie studenta lub nauczyciela (na podstawie roli)
 
 void AdminPanel::ShowAddUserDialog(const wxString& role)
 {
@@ -297,11 +338,12 @@ void AdminPanel::ShowAddUserDialog(const wxString& role)
     wxPanel* panel = new wxPanel(&dlg);
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 
+	//Nag³ówek
     wxStaticText* title = new wxStaticText(panel, wxID_ANY, "Add New " + role);
     title->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
     sizer->Add(title, 0, wxALL | wxALIGN_CENTER, 10);
 
-    // Tworzenie pól wejœciowych
+    //Tworzenie pól wejœciowych
     auto createField = [&](const wxString& labelText) {
         wxBoxSizer* fieldSizer = new wxBoxSizer(wxVERTICAL);
 
@@ -313,7 +355,12 @@ void AdminPanel::ShowAddUserDialog(const wxString& role)
 
         return std::make_pair(fieldSizer, textCtrl);
         };
+
+
+	//Dodanie odpowiednich pól w zale¿noœci od roli
     if (role == "Student") {
+
+		//Pola dla studenta
         auto firstNameField = createField("First Name:");
         auto lastNameField = createField("Last Name:");
         auto emailField = createField("Email:");
@@ -330,25 +377,27 @@ void AdminPanel::ShowAddUserDialog(const wxString& role)
         sizer->Add(addButton, 0, wxALL | wxALIGN_CENTER, 10);
 
         addButton->Bind(wxEVT_BUTTON, [&](wxCommandEvent&) {
-            // Pobranie danych z pól
+            //Pobranie danych z pól
             wxString firstName = firstNameField.second->GetValue();
             wxString lastName = lastNameField.second->GetValue();
             wxString email = emailField.second->GetValue();
             wxString major = majorField.second->GetValue();
             wxString yearStr = yearField.second->GetValue();
 
+			//Walidacja pól
             if (firstName.IsEmpty() || lastName.IsEmpty() || email.IsEmpty() || major.IsEmpty() || yearStr.IsEmpty()) {
                 wxMessageBox("All fields are required.", "Error", wxOK | wxICON_ERROR);
                 return;
             }
 
+            //Sprawdzenie poprawnoœci wprowadzonego roku
             int year = wxAtoi(yearStr);
             if (year <= 0) {
                 wxMessageBox("Year must be a positive number.", "Error", wxOK | wxICON_ERROR);
                 return;
             }
 
-            // ZnajdŸ najwiêksze ID wœród istniej¹cych studentów
+            //ZnajdŸ najwiêksze ID wœród istniej¹cych studentów
             vector<Students> students = Students::loadStudentsFromFile();
             int maxId = 0;
 
@@ -359,30 +408,31 @@ void AdminPanel::ShowAddUserDialog(const wxString& role)
                 }
             }
 
-            // Tworzenie nowego studenta z ID o 1 wiêkszym od najwiêkszego
+            //Tworzenie nowego studenta z ID o 1 wiêkszym od najwiêkszego
             int newId = maxId + 1;
             Students newStudent(std::to_string(newId),
                 firstName.ToStdString(), lastName.ToStdString(), "",
                 email.ToStdString(), major.ToStdString(), year, "", {});
 
-            // Dodanie studenta
+            //Dodanie studenta
             try {
-             
-
-                // Dodanie studenta do pliku students.json
+    
+                //Dodanie studenta do pliku students.json
                 Students::addStudent(newStudent, "userpassword");
 
-             
-
-                // Dodanie nowego u¿ytkownika do danych
+                //Dodanie nowego u¿ytkownika do danych
                 students.push_back(newStudent);
-                // Zapisanie listy studentów do pliku
+
+                //Zapisanie listy studentów do pliku
                 Students::saveStudentsToFile(students);
               
 
                 wxMessageBox("Student added successfully.", "Success", wxOK | wxICON_INFORMATION);
-                // Zamkniêcie okna dialogowego
+
+                //Zamkniêcie okna dialogowego
                 dlg.EndModal(wxID_OK);
+
+                //odœwie¿enie listy studentów
                 RefreshStudentList();
             }
             catch (const std::exception& e) {
@@ -393,22 +443,23 @@ void AdminPanel::ShowAddUserDialog(const wxString& role)
         panel->SetSizer(sizer);
         dlg.ShowModal();
     }
+
+	//Dodanie pól dla nauczyciela
     else if(role == "Teacher") {
+
+		//Pola dla nauczyciela
         auto firstNameField = createField("First Name:");
         auto lastNameField = createField("Last Name:");
         auto emailField = createField("Email:");
         auto subjectField = createField("Subject:");
         
-
-
         sizer->Add(firstNameField.first, 0, wxALL | wxEXPAND, 5);
         sizer->Add(lastNameField.first, 0, wxALL | wxEXPAND, 5);
         sizer->Add(emailField.first, 0, wxALL | wxEXPAND, 5);
         sizer->Add(subjectField.first, 0, wxALL | wxEXPAND, 5);
         
 
-
-        // Przyciski
+        //Przyciski
         wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
         wxButton* addBtn = new wxButton(panel, wxID_OK, "Add");
         wxButton* cancelBtn = new wxButton(panel, wxID_CANCEL, "Cancel");
@@ -416,9 +467,9 @@ void AdminPanel::ShowAddUserDialog(const wxString& role)
         buttonSizer->Add(cancelBtn, 0, wxALL, 5);
 
         sizer->Add(buttonSizer, 0, wxALL | wxALIGN_CENTER, 10);
-
         panel->SetSizer(sizer);
 
+		//Pobranie danych z pól
         dlg.Bind(wxEVT_BUTTON, [&dlg, &firstNameField, &lastNameField, &emailField, &subjectField, this](wxCommandEvent&) {
             wxString firstName = firstNameField.second->GetValue();
             wxString lastName = lastNameField.second->GetValue();
@@ -426,7 +477,7 @@ void AdminPanel::ShowAddUserDialog(const wxString& role)
             wxString major = subjectField.second->GetValue();
           
 
-
+            //Walidacja pól
             if (firstName.IsEmpty() || lastName.IsEmpty() || email.IsEmpty() || major.IsEmpty()) {
                 wxMessageBox("Please fill in all fields.", "Error", wxOK | wxICON_ERROR);
                 return;
@@ -438,20 +489,21 @@ void AdminPanel::ShowAddUserDialog(const wxString& role)
             // Generowanie unikalnego ID dla nowego studenta
             const std::string newId = std::to_string(Teachers.size() + 1);
 
-
-            // Tworzenie nowego obiektu studenta
+            //Tworzenie nowego obiektu studenta
             Teacher newTeacher(newId, firstName.ToStdString(), lastName.ToStdString(), major.ToStdString(), email.ToStdString(), vector<string>(), {});
-            // Dodanie nowego studenta do pliku i bazy u¿ytkowników
+            //Dodanie nowego studenta do pliku i bazy u¿ytkowników
             Teacher::addTeacher(newTeacher, "userpassword");
 
-            // Dodanie nowego studenta do listy
+            //Dodanie nowego studenta do listy
             Teachers.push_back(newTeacher);
 
-            // Zapisanie listy studentów do pliku
+            //Zapisanie listy studentów do pliku
             Teacher::saveTeachersToFile(Teachers);
-            RefreshStudentList();
-            wxMessageBox("Teacher added successfully!", "Success", wxOK | wxICON_INFORMATION);
 
+			// Odœwie¿enie listy nauczycieli
+            RefreshStudentList();
+
+            wxMessageBox("Teacher added successfully!", "Success", wxOK | wxICON_INFORMATION);
             dlg.EndModal(wxID_OK);
             }, wxID_OK);
 
@@ -461,26 +513,12 @@ void AdminPanel::ShowAddUserDialog(const wxString& role)
     }
    
 }
-void AdminPanel::RefreshTeacherList()
-{
-    if (!teachersList) return;
 
-    teachersList->Freeze();
-    teachersList->DeleteAllItems();
 
-    vector<Teacher> allTeachers = Teacher::loadTeachersFromFile();
 
-    for (const Teacher& teacher : allTeachers) {
-        long index = teachersList->InsertItem(teachersList->GetItemCount(), teacher.id);
-        teachersList->SetItem(index, 1, teacher.first_name);
-        teachersList->SetItem(index, 2, teacher.last_name);
-        teachersList->SetItem(index, 3, teacher.email);
-        teachersList->SetItem(index, 4, teacher.subject);
-    }
 
-    teachersList->Thaw();
-    teachersList->Refresh();
-}
+
+//Usuniêcie nauczyciela wraz z jego egzaminami i ocenami
 
 void AdminPanel::OnRemoveTeacher(wxCommandEvent& event)
 {
@@ -489,13 +527,15 @@ void AdminPanel::OnRemoveTeacher(wxCommandEvent& event)
     wxPanel* panel = new wxPanel(&dlg);
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 
+	//Nag³ówek
     wxStaticText* title = new wxStaticText(panel, wxID_ANY, "Remove Teacher");
     title->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
     sizer->Add(title, 0, wxALL | wxALIGN_CENTER, 10);
 
+	//Wczytanie nauczycieli z pliku teachers.json
     vector<Teacher> teachers = Teacher::loadTeachersFromFile();
 
-    // Tworzenie listy rozwijalnej z pe³nymi nazwiskami nauczycieli
+    //Tworzenie listy rozwijalnej z nauczycielami
     wxStaticText* teacherLabel = new wxStaticText(panel, wxID_ANY, "Select Teacher:");
     sizer->Add(teacherLabel, 0, wxALL | wxALIGN_CENTER, 5);
 
@@ -505,7 +545,7 @@ void AdminPanel::OnRemoveTeacher(wxCommandEvent& event)
     }
     sizer->Add(teacherChoice, 0, wxALL | wxEXPAND, 5);
 
-    // Przyciski
+    //Przyciski
     wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
     wxButton* removeBtn = new wxButton(panel, wxID_OK, "Remove");
     wxButton* cancelBtn = new wxButton(panel, wxID_CANCEL, "Cancel");
@@ -524,32 +564,34 @@ void AdminPanel::OnRemoveTeacher(wxCommandEvent& event)
             return;
         }
 
-        // Pobranie wybranego nauczyciela
+        //Pobranie wybranego nauczyciela
         const Teacher& selectedTeacher = teachers[selectedIndex];
         string teacherId = selectedTeacher.id;
         string teacherEmail = selectedTeacher.email;
         vector<string> examsToRemove = selectedTeacher.exams;
         vector<string> gradesToRemove = selectedTeacher.grades;
 
-        // Usuniêcie nauczyciela z listy
+        //Usuniêcie nauczyciela z listy
         teachers.erase(teachers.begin() + selectedIndex);
         Teacher::saveTeachersToFile(teachers);
 
-        // Wczytanie i aktualizacja listy egzaminów
+        //Wczytanie i aktualizacja listy egzaminów
         vector<Exam> exams = Exam::loadExamsFromFile();
         exams.erase(remove_if(exams.begin(), exams.end(), [&examsToRemove](const Exam& exam) {
             return find(examsToRemove.begin(), examsToRemove.end(), exam.id) != examsToRemove.end();
             }), exams.end());
         Exam::saveExamsToFile(exams);
 
-        // Wczytanie i aktualizacja listy ocen
+
+        //Wczytanie i aktualizacja listy ocen
         vector<Grade> grades = Grade::loadGradesFromFile();
         grades.erase(remove_if(grades.begin(), grades.end(), [&gradesToRemove](const Grade& grade) {
             return find(gradesToRemove.begin(), gradesToRemove.end(), grade.id) != gradesToRemove.end();
             }), grades.end());
         Grade::saveGradesToFile(grades);
 
-        // Wczytanie i aktualizacja studentów
+
+        //Wczytanie i aktualizacja studentów
         vector<Students> students = Students::loadStudentsFromFile();
         for (Students& student : students) {
             student.grades.erase(remove_if(student.grades.begin(), student.grades.end(), [&gradesToRemove](const string& gradeId) {
@@ -558,7 +600,8 @@ void AdminPanel::OnRemoveTeacher(wxCommandEvent& event)
         }
         Students::saveStudentsToFile(students);
 
-        // Usuniêcie u¿ytkownika z pliku `users.json`
+
+        //Usuniêcie u¿ytkownika z pliku `users.json`
         ifstream usersFile("users.json");
         json usersData;
 
@@ -592,7 +635,10 @@ void AdminPanel::OnRemoveTeacher(wxCommandEvent& event)
         }
 
         wxMessageBox("Teacher and their exams and grades removed successfully.", "Success", wxOK | wxICON_INFORMATION);
-        RefreshTeacherList(); // Odœwie¿enie listy nauczycieli
+        
+        //Odœwie¿enie listy nauczycieli
+        RefreshTeacherList();
+
         dlg.EndModal(wxID_OK);
         }, wxID_OK);
 

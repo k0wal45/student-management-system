@@ -5,22 +5,37 @@
 class AdminPanel : public wxPanel
 {
 public:
+    //konstruktor
     AdminPanel(wxWindow* parent);
 
 private:
     
     wxNotebook* notebook;
+
+    //Lista studentów
     wxListCtrl* studentsList;
+
+	//Lista nauczycieli
     wxListCtrl* teachersList;
-	//dododawanie studentów
+
+	//dododawanie studentów (event)
     void OnAddStudent(wxCommandEvent& event);
-    void RefreshTeacherList();
-    void OnRemoveTeacher(wxCommandEvent& event);
-	//dodawanie nauczycieli
+
+    //dodanie nauczyciela
     void OnAddTeacher(wxCommandEvent& event);
 
+	//Odœwie¿anie listy studentów
+    void RefreshTeacherList();
+
+    //Odœwie¿anie listy nauczycieli
+    void RefreshStudentList();
+
+    //Dodawanie u¿ytkownika (nauczyciel/student)
     void ShowAddUserDialog(const wxString& role);
 
-    void RefreshStudentList();
+	//Usuniêcie nauczyciela
+    void OnRemoveTeacher(wxCommandEvent& event);
+
+	//Usuniêcie studenta
     void OnRemoveStudent(wxCommandEvent& event);
 };

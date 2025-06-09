@@ -1,28 +1,33 @@
 #include "MainFrame.h"
 
+//Konstruktor
+
 MainFrame::MainFrame(const wxString& title)
     : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE & ~wxRESIZE_BORDER)
 {
-    // Ustawienia stylu
+   
     SetBackgroundColour(wxColour(240, 240, 240));
 
-    // Menu
+    //Menu
     wxMenuBar* menuBar = new wxMenuBar;
     wxMenu* fileMenu = new wxMenu;
     fileMenu->Append(wxID_EXIT, "&Exit\tAlt-X", "Quit this program");
     menuBar->Append(fileMenu, "&File");
     SetMenuBar(menuBar);
 
-    // G³ówny sizer
+    //G³ówny sizer
     mainSizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(mainSizer);
 
-    // Panel logowania
+    //Panel logowania
     ShowLoginPanel();
 
-    // Eventy
+    //Mo¿liwoœæ zamkniêcia aplikacji
     Bind(wxEVT_MENU, &MainFrame::OnExit, this, wxID_EXIT);
 }
+
+
+//Wyœwietl panel logowania
 
 void MainFrame::ShowLoginPanel()
 {
@@ -31,12 +36,17 @@ void MainFrame::ShowLoginPanel()
     Layout();
 }
 
+
+//Wyœwietl panel admina
+
 void MainFrame::ShowAdminPanel()
 {
     mainSizer->Clear(true);
     mainSizer->Add(new AdminPanel(this), 1, wxEXPAND);
     Layout();
 }
+
+//Wyœwietl panel nauczyciela
 
 void MainFrame::ShowTeacherPanel(const wxString& teacherName)
 {
@@ -45,6 +55,9 @@ void MainFrame::ShowTeacherPanel(const wxString& teacherName)
     Layout();
 }
 
+
+//Wyœwietl panel studenta
+
 void MainFrame::ShowStudentPanel(const wxString& studentName)
 {
     mainSizer->Clear(true);
@@ -52,12 +65,13 @@ void MainFrame::ShowStudentPanel(const wxString& studentName)
     Layout();
 }
 
+
+
+//Zamkniêcie aplikacji
+
 void MainFrame::OnExit(wxCommandEvent& event)
 {
     Close(true);
 }
 
-void MainFrame::OnAbout(wxCommandEvent& event)
-{
-    wxMessageBox("Student Management System\nVersion 1.0", "About", wxOK | wxICON_INFORMATION);
-}
+

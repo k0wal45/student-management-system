@@ -6,40 +6,66 @@
 class TeacherPanel : public wxPanel
 {
 public:
-	//stworzenie panelu nauczyciela
+	//Konstruktor
     TeacherPanel(wxWindow* parent, const wxString& teacherEmail);
    
 private:
-	//przechowanie nazwy nauczyciela
+	//Nazwa nauczyciela
     wxString teacherEmail;
+
 	//lista studentów
     wxListCtrl* studentsList;
+
    //lista ocen
     wxListCtrl* gradesList;
+
+	//lista egzaminów
     wxListCtrl* examsList;
-    // Dodane pole do wyszukiwania
+
+    //Dodane pole do wyszukiwania
     wxTextCtrl* searchCtrl; 
+
+	//Zak³adki
     wxNotebook* notebook;
-	//dodanie oceny
+
+
+
+	//Dodanie oceny (event)
     void OnAddGrade(wxCommandEvent& event);
+
+    //Dodanie oceny
     void ShowAddGradeDialog();
 
+    //Dodanie egzaminu (event)
+    void OnAddExam(wxCommandEvent& event);
+
+    //Dodanie egzaminu
+    void ShowAddExamDialog();
+
+
+
+	//Usuniêcie oceny (event)
 	void OnRemoveGrade(wxCommandEvent& event);
-	//filtrowanie studentów
-    void OnSearch(wxCommandEvent& event);
-    void FilterStudents(const wxString& searchText);
+
+    //Usuniêcie oceny
+    void ShowRemoveGradeDialog();
+
+	//Usuniêcie egzaminu (event)
     void OnRemoveExam(wxCommandEvent& event);
+
+
+
+	//Odœwie¿enie listy egzaminów
     void RefreshExamsList();
-    //aktualizacja listy ocen po dodaniu
+
+    //Odœwie¿enie listy ocen
     void RefreshGradesList();
 
 
-    void FilterData(const wxString& searchText, bool filterGrades);
-    void RemoveGrade();
-    void ShowRemoveGradeDialog();
-
-    //dodanie egzaminu
-    void OnAddExam(wxCommandEvent& event);
-    void ShowAddExamDialog();
    
+    //filtrowanie studentów (event)
+    void OnSearch(wxCommandEvent& event);
+
+    //filtrowanie studentów (event)
+    void FilterData(const wxString& searchText, bool filterGrades);
 };

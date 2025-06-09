@@ -8,24 +8,25 @@
 class MainFrame : public wxFrame
 {
 public:
+	//Konstruktor
     MainFrame(const wxString& title);
+
 	//wyœwietl panel logowania
 	void ShowLoginPanel(); 
+
 	//wyœwietl panel admina
     void ShowAdminPanel(); 
+
 	//wyœwietl panel nauczyciela
 	void ShowTeacherPanel(const wxString& teacherName); 
+
 	//wyœwietl panel studenta
 	void ShowStudentPanel(const wxString& studentName); 
 
 private:
 	// g³ówny sizer do zarz¹dzania uk³adem okna
 	wxBoxSizer* mainSizer;
-	AdminPanel* adminPanel;  // Dodaj tê liniê
-	TeacherPanel* teacherPanel;
-	StudentPanel* studentPanel;
+
+	//Wyjœcie z aplikacji
 	void OnExit(wxCommandEvent& event);
-	void OnAbout(wxCommandEvent& event);
-	
-	
 };
