@@ -92,9 +92,6 @@
     <ClInclude Include="..\..\..\..\..\Desktop\json.hpp">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
-    <ClInclude Include="printStudents.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
     <ClInclude Include="Students.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>

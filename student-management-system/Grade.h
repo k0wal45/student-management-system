@@ -11,24 +11,21 @@ using json = nlohmann::json;
 
 class Grade {
 public:
-    static const string filePath; // Œcie¿ka do pliku JSON z ocenami
+    static const string filePath; 
 
-    string id;         // ID oceny
-    double grade;      // Wartoœæ oceny
-    string subject;    // Przedmiot
-    string comment;    // Komentarz do oceny
-    string date;       // Data wystawienia oceny
+    string id;         
+    double grade;    
+    string subject;  
+    string comment;   
+    string date;    
 
-    // Konstruktor
     Grade(const string& id, double grade, const string& subject, const string& comment, const string& date)
         : id(id), grade(grade), subject(subject), comment(comment), date(date) {}
 
-    // Destruktor
     ~Grade() {}
 
-    // Operacje na pliku
-    static vector<Grade> loadGradesFromFile(); // Wczytanie ocen z pliku JSON
-    static void saveGradesToFile(const vector<Grade>& grades); // Zapisanie ocen do pliku JSON
+    static vector<Grade> loadGradesFromFile(); 
+    static void saveGradesToFile(const vector<Grade>& grades);
 };
 
-#endif // GRADE_H
+#endif

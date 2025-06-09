@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include "json.hpp" // Biblioteka JSON (np. nlohmann/json)
+#include "json.hpp" 
 #include "Grade.h" 
 #include "Exam.h"
 
@@ -18,17 +18,15 @@ public:
     string last_name;
     string subject;
     string email;
-	// Has³o nauczyciela, mo¿e byæ u¿ywane do logowania
-    vector<string> grades; // Lista ID ocen wpisanych przez nauczyciela
-    vector<string> exams;  // Lista ID egzaminów stworzonych przez nauczyciela
+    vector<string> grades; 
+    vector<string> exams; 
 
-    static const string filePath; // Œcie¿ka do pliku JSON
-    // Konstruktor i destruktor
+    static const string filePath; 
+
     Teacher(const string& id, const string& first_name, const string& last_name,
         const string& subject, const string& email, const vector<string>& grades, const vector<string>& exams);
     ~Teacher();
 
-    // Metody publiczne
     void addGrade(const string& student_id, const Grade& grade);
     void removeGrade(const string& grade_id);
     void addExam(const string& student_id, const Exam& exam);
@@ -38,10 +36,10 @@ public:
     static vector<Teacher> loadTeachersFromFile();
     static void saveTeachersToFile(const vector<Teacher>& teachers);
 
-    static void addTeacher(const Teacher& newTeacher, const string& password); // Dodanie nauczyciela
-    static void removeTeacher(const string& teacher_id); // Usuniêcie nauczyciela
-    static Teacher getTeacherById(const string& teacher_id); // Pobranie nauczyciela po ID
+    static void addTeacher(const Teacher& newTeacher, const string& password); 
+    static void removeTeacher(const string& teacher_id); 
+    static Teacher getTeacherById(const string& teacher_id); 
 
 };
 
-#endif // TEACHER_H
+#endif 

@@ -1,13 +1,12 @@
 #include "Grade.h"
 #include <fstream>
 
-const string Grade::filePath = "grades.json"; // Œcie¿ka do pliku JSON z ocenami
+const string Grade::filePath = "grades.json";
 
-// Wczytanie ocen z pliku JSON
 vector<Grade> Grade::loadGradesFromFile() {
     ifstream file(filePath);
     if (!file.is_open()) {
-        cerr << "Nie mo¿na otworzyc pliku: " << filePath << endl;
+        cerr << "Nie mozna otworzyc pliku: " << filePath << endl;
         return {};
     }
 
@@ -29,11 +28,10 @@ vector<Grade> Grade::loadGradesFromFile() {
     return gradesList;
 }
 
-// Zapisanie ocen do pliku JSON
 void Grade::saveGradesToFile(const vector<Grade>& grades) {
     ofstream file(filePath);
     if (!file.is_open()) {
-        cerr << "Nie mo¿na otworzyc pliku: " << filePath << endl;
+        cerr << "Nie mozna otworzyc pliku: " << filePath << endl;
         return;
     }
 

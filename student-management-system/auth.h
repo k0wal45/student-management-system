@@ -13,4 +13,4 @@ public:
     static string AuthUser(const string& email, const string& password);
 };
 
-#endif // AUTH_H
+#endif

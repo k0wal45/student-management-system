@@ -158,7 +158,6 @@
     <ClInclude Include="Grade.h" />
     <ClInclude Include="node_blf.h" />
     <ClInclude Include="openbsd.h" />
-    <ClInclude Include="printStudents.h" />
     <ClInclude Include="AdminPanel.h" />
     <ClInclude Include="LoginPanel.h" />
     <ClInclude Include="MainApp.h" />
