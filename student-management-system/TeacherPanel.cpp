@@ -229,8 +229,34 @@ void TeacherPanel::OnRemoveExam(wxCommandEvent& event)
 
 	//Pobierz dane wybranego egzaminu
     wxString subject = examsList->GetItemText(selectedItem, 0);
-    wxString date = examsList->GetItemText(selectedItem, 1);
 
+    //Wybór daty
+    wxDatePickerCtrl* datePicker = new wxDatePickerCtrl(this, wxID_ANY, wxDefaultDateTime, wxDefaultPosition, wxDefaultSize, wxDP_DEFAULT);
+
+    //Pobierz wybran¹ datê z kontrolki
+    wxDateTime selectedDate = datePicker->GetValue();
+
+    //Walidacja wybranej daty
+    if (!selectedDate.IsValid()) {
+        wxMessageBox("Please select a valid date!", "Validation Error", wxOK | wxICON_ERROR);
+        return;
+    }
+
+    // Konwersja daty na wxString
+    wxString date = selectedDate.FormatISODate();
+
+    // Walidacja danych pobranych z pól
+    if (subject.IsEmpty()) {
+        wxMessageBox("Student name cannot be empty!", "Validation Error", wxOK | wxICON_ERROR);
+        return;
+    }
+
+    if (date.IsEmpty()) {
+        wxMessageBox("Subject cannot be empty!", "Validation Error", wxOK | wxICON_ERROR);
+        return;
+    }
+
+  
 
     // Wczytaj wszystkie egzaminy
     vector<Exam> allExams = Exam::loadExamsFromFile();
@@ -579,6 +605,25 @@ void TeacherPanel::ShowRemoveGradeDialog() {
         wxString subject = subjectTextCtrl->GetValue();
         double grade = wxAtof(gradeTextCtrl->GetValue());
 
+
+        // Walidacja danych pobranych z pól
+        if (studentName.IsEmpty()) {
+            wxMessageBox("Student name cannot be empty!", "Validation Error", wxOK | wxICON_ERROR);
+            return;
+        }
+
+        if (subject.IsEmpty()) {
+            wxMessageBox("Subject cannot be empty!", "Validation Error", wxOK | wxICON_ERROR);
+            return;
+        }
+
+        if (gradeTextCtrl->GetValue().IsEmpty() || grade <= 0) {
+            wxMessageBox("Grade must be a valid number greater than 0!", "Validation Error", wxOK | wxICON_ERROR);
+            return;
+        }
+
+      
+
         //Usuñ ocenê od odpowiedniego studenta
         for (Students& student : allStudents) {
             if (studentName == student.first_name + " " + student.last_name) {
@@ -733,6 +778,29 @@ void TeacherPanel::ShowAddGradeDialog()
         wxString subject = subjectComboBox->GetValue();
         double grade = wxAtof(gradeComboBox->GetValue());
         wxString comment = commentTextCtrl->GetValue();
+
+        // Walidacja danych pobranych z pól
+        if (studentName.IsEmpty()) {
+            wxMessageBox("Student name cannot be empty!", "Validation Error", wxOK | wxICON_ERROR);
+            return;
+        }
+
+        if (subject.IsEmpty()) {
+            wxMessageBox("Subject cannot be empty!", "Validation Error", wxOK | wxICON_ERROR);
+            return;
+        }
+
+        if (gradeComboBox->GetValue().IsEmpty() || grade <= 0) {
+            wxMessageBox("Grade must be a valid number greater than 0!", "Validation Error", wxOK | wxICON_ERROR);
+            return;
+        }
+
+        if (comment.IsEmpty()) {
+            wxMessageBox("Comment cannot be empty!", "Validation Error", wxOK | wxICON_ERROR);
+            return;
+        }
+
+
 
         //Wczytaj listê nauczycieli z pliku
         vector<Teacher> teachers = Teacher::loadTeachersFromFile();
@@ -893,7 +961,23 @@ void TeacherPanel::ShowAddExamDialog()
         wxString subject = subjectChoice->GetStringSelection();
         wxDateTime date = dateCtrl->GetValue();
         wxString description = descriptionCtrl->GetValue();
-        
+        // Walidacja danych pobranych z pól
+        if (subject.IsEmpty()) {
+            wxMessageBox("Subject cannot be empty!", "Validation Error", wxOK | wxICON_ERROR);
+            return;
+        }
+
+        if (!date.IsValid()) {
+            wxMessageBox("Enter proper date", "Validation Error", wxOK | wxICON_ERROR);
+            return;
+        }
+
+        if (description.IsEmpty()) {
+            wxMessageBox("Description cannot be empty", "Validation Error", wxOK | wxICON_ERROR);
+            return;
+        }
+
+       
        // Wczytaj istniej¹ce egzaminy z pliku
         std::vector<Exam> allExams = Exam::loadExamsFromFile();
 
